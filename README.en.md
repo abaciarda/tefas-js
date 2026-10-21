@@ -35,7 +35,18 @@ console.log(history.prices);
 console.log(history.returnedDateRange);
 ```
 
-`periodMonths` is required and accepts `1`, `3`, `6`, `12`, `36`, or `60`. Fund codes are trimmed, uppercased, and checked as three ASCII letters or digits.
+`periodMonths` accepts `1`, `3`, `6`, `12`, `36`, or `60`. Alternatively, use `period` for named periods, including one week (`1w`) and year to date (`ytd`):
+
+```ts
+const weekly = await client.getPriceHistory("TI2", { period: "1w" });
+const ytd = await client.getPriceHistory("TI2", { period: "ytd" });
+```
+
+The other named periods are `1m`, `3m`, `6m`, `1y`, `3y`, and `5y`. Provide exactly one of `period` or `periodMonths`. Providing both or neither produces `INVALID_ARGUMENT`.
+
+The result always includes `period`. Its `periodMonths` field is `null` for weekly and YTD queries, and the month count for other periods.
+
+Fund codes are trimmed, uppercased, and checked as three ASCII letters or digits.
 
 Prices are sorted from oldest to newest. Dates remain `YYYY-MM-DD` strings and prices are JavaScript numbers. Identical entries for the same date are deduplicated; conflicting prices are rejected.
 
@@ -121,6 +132,16 @@ The client does not imitate a browser or try to bypass access controls. If TEFAS
 The first version focuses on one fund's price history. Fund discovery, additional fund details, multi-fund queries, and caching are future work. CommonJS and browser compatibility are not claimed.
 
 No requests run during package installation or import. TEFAS is queried when you call the client method.
+
+## Release notes
+
+### 0.2.0 — in development
+
+Added the `period` option for weekly and YTD queries. Existing `periodMonths` calls continue to work.
+
+`PriceHistory.periodMonths` is now `HistoryPeriodMonths | null`. TypeScript consumers may need a null check when using this field. Results also include the required `period` field.
+
+These changes have not been published to npm yet. Use `periodMonths` with the published `0.1.1` version.
 
 ## License and affiliation
 

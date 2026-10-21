@@ -8,11 +8,11 @@ type Fetcher = (url: string, init: RequestInit) => Promise<Response>;
 
 export async function requestPriceHistory(
   fundCode: string,
-  periodMonths: HistoryPeriodMonths,
+  period: HistoryPeriodMonths | 0 | 13,
   fetcher: Fetcher = globalThis.fetch,
   signal?: AbortSignal,
 ): Promise<unknown> {
-  return postJson(PRICE_HISTORY_URL, { fonKodu: fundCode, dil: "TR", periyod: periodMonths }, fetcher, signal);
+  return postJson(PRICE_HISTORY_URL, { fonKodu: fundCode, dil: "TR", periyod: period }, fetcher, signal);
 }
 
 export async function postJson(

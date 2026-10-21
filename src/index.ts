@@ -7,6 +7,7 @@ export type {
   FundKind,
   FundPrice,
   GetPriceHistoryOptions,
+  HistoryPeriod,
   HistoryPeriodMonths,
   PriceHistory,
   ReturnedDateRange,

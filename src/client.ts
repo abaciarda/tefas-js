@@ -1,15 +1,10 @@
 import { TefasError } from "./errors.js";
 import { parsePriceHistory } from "./parser.js";
+import { resolveHistoryPeriod, toSourcePeriod } from "./periods.js";
 import { executeRequest, withRequestContext } from "./request.js";
 import { requestPriceHistory } from "./transport.js";
 import { isRecord, normalizeFundCode } from "./validation.js";
-import type { GetPriceHistoryOptions, HistoryPeriodMonths, PriceHistory, TefasClientOptions } from "./types.js";
-
-const SUPPORTED_PERIODS: readonly number[] = [1, 3, 6, 12, 36, 60];
-
-function isSupportedPeriod(value: unknown): value is HistoryPeriodMonths {
-  return typeof value === "number" && SUPPORTED_PERIODS.includes(value);
-}
+import type { GetPriceHistoryOptions, PriceHistory, TefasClientOptions } from "./types.js";
 
 export class TefasClient {
   private readonly timeoutMs: number;
@@ -34,14 +29,11 @@ export class TefasClient {
 
   async getPriceHistory(fundCode: string, options: GetPriceHistoryOptions): Promise<PriceHistory> {
     const normalizedCode = normalizeFundCode(fundCode);
-    if (!isRecord(options) || Object.keys(options).some((key) => key !== "periodMonths" && key !== "signal")) {
+    if (!isRecord(options) || Object.keys(options).some((key) => key !== "periodMonths" && key !== "period" && key !== "signal")) {
       throw new TefasError("INVALID_ARGUMENT", "Invalid price history options.");
     }
-    const periodMonths = options.periodMonths;
+    const period = resolveHistoryPeriod(options);
     const signal = options.signal;
-    if (!isSupportedPeriod(periodMonths)) {
-      throw new TefasError("INVALID_ARGUMENT", "Unsupported history period.");
-    }
     if (signal !== undefined && !(signal instanceof AbortSignal)) {
       throw new TefasError("INVALID_ARGUMENT", "Invalid cancellation signal.");
     }
@@ -50,8 +42,8 @@ export class TefasClient {
       executeRequest(
         request,
         this.maxRetries,
-        (requestSignal) => requestPriceHistory(normalizedCode, periodMonths, globalThis.fetch, requestSignal),
-        (payload) => parsePriceHistory(payload, normalizedCode, periodMonths),
+        (requestSignal) => requestPriceHistory(normalizedCode, toSourcePeriod(period), globalThis.fetch, requestSignal),
+        (payload) => parsePriceHistory(payload, normalizedCode, period),
       ),
     );
   }

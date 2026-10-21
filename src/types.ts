@@ -1,5 +1,7 @@
 export type HistoryPeriodMonths = 1 | 3 | 6 | 12 | 36 | 60;
 
+export type HistoryPeriod = "1w" | "1m" | "3m" | "6m" | "ytd" | "1y" | "3y" | "5y";
+
 export type FundKind = "YAT" | "EMK" | "BYF" | "GYF" | "GSYF";
 
 export interface FundPrice {
@@ -15,7 +17,8 @@ export interface ReturnedDateRange {
 export interface PriceHistory {
   readonly fundCode: string;
   readonly fundName: string | null;
-  readonly periodMonths: HistoryPeriodMonths;
+  readonly period: HistoryPeriod;
+  readonly periodMonths: HistoryPeriodMonths | null;
   readonly prices: readonly FundPrice[];
   readonly returnedDateRange: ReturnedDateRange | null;
 }
@@ -25,7 +28,9 @@ export interface TefasClientOptions {
   readonly maxRetries?: number;
 }
 
-export interface GetPriceHistoryOptions {
-  readonly periodMonths: HistoryPeriodMonths;
+export type GetPriceHistoryOptions = {
   readonly signal?: AbortSignal;
-}
+} & (
+  | { readonly periodMonths: HistoryPeriodMonths; readonly period?: never }
+  | { readonly period: HistoryPeriod; readonly periodMonths?: never }
+);

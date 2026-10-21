@@ -1,8 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
+import { readFileSync } from "node:fs";
 import { TefasClient } from "../dist/index.js";
-import type { GetPriceHistoryOptions, TefasClientOptions, TefasErrorCode } from "../dist/index.js";
+import type { GetPriceHistoryOptions, HistoryPeriod, HistoryPeriodMonths, TefasClientOptions, TefasErrorCode } from "../dist/index.js";
 import { envelope, row, matchesCode, withFetch, pendingFetch } from "./helpers.js";
 import type { TestFetcher } from "./helpers.js";
 
@@ -20,6 +21,7 @@ test("client construction is passive and history normalizes the request", async 
       const result = await client.getPriceHistory(" ti2 ", { periodMonths: 12 });
       assert.equal(result.fundCode, "TI2");
       assert.equal(result.periodMonths, 12);
+      assert.equal(result.period, "1y");
       assert.deepEqual(
         result.prices.map((price) => price.date),
         ["2026-10-19", "2026-10-20"],
@@ -27,6 +29,93 @@ test("client construction is passive and history normalizes the request", async 
       assert.equal(calls, 1);
     },
   );
+});
+
+test("named history periods map to TEFAS periods and retain meaningful metadata", async () => {
+  const cases: readonly (readonly [HistoryPeriod, number, HistoryPeriodMonths | null])[] = [
+    ["1w", 13, null], ["1m", 1, 1], ["3m", 3, 3], ["6m", 6, 6],
+    ["ytd", 0, null], ["1y", 12, 12], ["3y", 36, 36], ["5y", 60, 60],
+  ];
+  for (const [period, source, months] of cases) {
+    let calls = 0;
+    await withFetch(async (_url, init) => {
+      calls += 1;
+      assert.deepEqual(JSON.parse(init.body), { fonKodu: "TI2", dil: "TR", periyod: source });
+      return Response.json(envelope());
+    }, async () => {
+      const result = await new TefasClient().getPriceHistory("TI2", { period });
+      assert.equal(result.period, period);
+      assert.equal(result.periodMonths, months);
+      assert.deepEqual(result.prices, []);
+      assert.equal(result.returnedDateRange, null);
+    });
+    assert.equal(calls, 1);
+  }
+});
+
+test("all legacy month periods remain supported and return canonical period names", async () => {
+  const cases: readonly (readonly [HistoryPeriodMonths, HistoryPeriod])[] = [
+    [1, "1m"], [3, "3m"], [6, "6m"], [12, "1y"], [36, "3y"], [60, "5y"],
+  ];
+  for (const [months, period] of cases) {
+    await withFetch(async (_url, init) => {
+      assert.equal(JSON.parse(init.body).periyod, months);
+      return Response.json(envelope([row("2026-10-20", 2)]));
+    }, async () => {
+      const result = await new TefasClient().getPriceHistory("TI2", { periodMonths: months });
+      assert.equal(result.period, period);
+      assert.equal(result.periodMonths, months);
+      assert.deepEqual(result.prices, [{ date: "2026-10-20", price: 2 }]);
+    });
+  }
+});
+
+test("missing, conflicting and malformed history periods never send requests", async () => {
+  const invalid: readonly unknown[] = [
+    {}, { period: undefined }, { periodMonths: undefined },
+    { period: "1w", periodMonths: 1 }, { period: "1y", periodMonths: 12 },
+    { period: "ytd", periodMonths: undefined }, { period: undefined, periodMonths: 12 },
+    { period: undefined, periodMonths: undefined },
+    { periodMonths: 0 }, { periodMonths: 13 }, { periodMonths: null },
+    { period: "YTD" }, { period: "1W" }, { period: "12m" }, { period: " 1w " },
+    { period: "toString" }, { period: "__proto__" }, { period: 13 }, { period: 0 },
+    { period: null }, { period: {} }, { period: "1w", typo: true },
+    { period: "ytd", signal: {} },
+  ];
+  let calls = 0;
+  await withFetch(async () => {
+    calls += 1;
+    return Response.json(envelope());
+  }, async () => {
+    const client = new TefasClient();
+    for (const options of invalid) {
+      await assert.rejects(
+        () => client.getPriceHistory("TI2", options as GetPriceHistoryOptions),
+        matchesCode("INVALID_ARGUMENT"),
+      );
+    }
+  });
+  assert.equal(calls, 0);
+});
+
+test("weekly and YTD discovery fixtures pass through the client and parser", async () => {
+  const cases: readonly (readonly [HistoryPeriod, string, string])[] = [
+    ["1w", "fonFiyatBilgiGetir-week", "2026-10-14"],
+    ["ytd", "fonFiyatBilgiGetir-ytd", "2026-01-02"],
+  ];
+  for (const [period, fixture, firstDate] of cases) {
+    const payload: unknown = JSON.parse(readFileSync(new URL(`../tests/fixtures/${fixture}.json`, import.meta.url), "utf8"));
+    const original: unknown = structuredClone(payload);
+    await withFetch(async () => Response.json(payload), async () => {
+      const result = await new TefasClient().getPriceHistory("TI2", { period });
+      assert.equal(result.period, period);
+      assert.equal(result.periodMonths, null);
+      assert.equal(result.prices.length, 3);
+      assert.equal(result.returnedDateRange?.from, firstDate);
+      assert.equal(result.fundName, "İŞ PORTFÖY HİSSE SENEDİ (TL) FONU (HİSSE SENEDİ YOĞUN FON)");
+    });
+    assert.deepEqual(payload, original);
+  }
 });
 
 test("invalid client and query arguments never send HTTP requests", async () => {

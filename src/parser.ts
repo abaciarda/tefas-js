@@ -1,7 +1,8 @@
-import type { FundPrice, HistoryPeriodMonths, PriceHistory } from "./types.js";
+import { toPeriodMonths } from "./periods.js";
+import type { FundPrice, HistoryPeriod, PriceHistory } from "./types.js";
 import { invalidResponse, isDateString, isNonEmptyString, isNonNegativeNumber, isRecord, validateEnvelope } from "./validation.js";
 
-export function parsePriceHistory(payload: unknown, fundCode: string, periodMonths: HistoryPeriodMonths): PriceHistory {
+export function parsePriceHistory(payload: unknown, fundCode: string, period: HistoryPeriod): PriceHistory {
   const response = validateEnvelope(payload);
   if (!Array.isArray(response.resultList)) {
     invalidResponse("Missing or invalid resultList");
@@ -56,7 +57,8 @@ export function parsePriceHistory(payload: unknown, fundCode: string, periodMont
   return {
     fundCode,
     fundName,
-    periodMonths,
+    period,
+    periodMonths: toPeriodMonths(period),
     prices,
     returnedDateRange: first !== undefined && last !== undefined ? { from: first.date, to: last.date } : null,
   };

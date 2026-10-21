@@ -34,6 +34,17 @@ console.log(history.returnedDateRange);
 
 `periodMonths`, kaç aylık veri istediğinizi belirtir. `1`, `3`, `6`, `12`, `36` veya `60` olabilir.
 
+Dönemi `period` ile de seçebilirsiniz. Haftalık veri için `1w`, yılbaşından bugüne veri için `ytd` kullanılır:
+
+```ts
+const weekly = await client.getPriceHistory("TI2", { period: "1w" });
+const ytd = await client.getPriceHistory("TI2", { period: "ytd" });
+```
+
+Diğer seçenekler `1m`, `3m`, `6m`, `1y`, `3y` ve `5y`. `period` ile `periodMonths` seçeneklerinden yalnızca birini vermelisiniz. Hiçbiri verilmezse veya ikisi birlikte verilirse `INVALID_ARGUMENT` hatası döner.
+
+Sonuçtaki `period` her zaman seçilen dönemi gösterir. `periodMonths` haftalık ve YTD sorgularında `null`, diğer dönemlerde ay sayısıdır.
+
 Fon kodunda büyük/küçük harf ve baştaki ya da sondaki boşluklar sorun olmaz. Örneğin `" ti2 "`, `"TI2"` olarak işlenir. Kod üç harf veya rakamdan oluşmalıdır.
 
 `prices` içindeki kayıtlar tarihe göre eskiden yeniye sıralanır. Her kayıtta `date` ve `price` bulunur:
@@ -156,6 +167,16 @@ Bu komut tek bir istek gönderir. Normal testlere veya CI'a dahil değildir. CI'
 İlk sürüm yalnızca tek fonun fiyat verisini sorgular. Fon listesi, ek fon bilgileri, toplu sorgu ve önbellekleme henüz yok. API, sonraki 0.x sürümlerinde değişebilir.
 
 Paket ESM olarak sunulur. CommonJS ve tarayıcı desteği yoktur. Kurulumda veya import sırasında istek gönderilmez; istek yalnızca `getPriceHistory` çağrıldığında yapılır.
+
+## Sürüm notları
+
+### 0.2.0 — hazırlanıyor
+
+Haftalık ve YTD sorguları için `period` seçeneği eklendi. Mevcut `periodMonths` çağrıları çalışmaya devam ediyor.
+
+`PriceHistory.periodMonths` artık `HistoryPeriodMonths | null`. Bu alanı kullanan TypeScript kodunda `null` kontrolü gerekebilir. Sonuca her zaman dolu olan `period` alanı da eklendi.
+
+Bu değişiklikler henüz npm'de yayımlanmadı. Yayımlanmış `0.1.1` sürümünde `periodMonths` kullanılmalı.
 
 ## Lisans
 

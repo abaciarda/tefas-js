@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { parsePriceHistory } from "../dist/parser.js";
 import { envelope, row, matchesCode } from "./helpers.js";
 
-const parse = (payload: unknown) => parsePriceHistory(payload, "TI2", 12);
+const parse = (payload: unknown) => parsePriceHistory(payload, "TI2", "1y");
 
 test("parser sorts, deduplicates and preserves the source input", () => {
   const input = envelope([row("2026-10-20", 2), row("2026-10-19", 1), row("2026-10-19", 1)]);
@@ -11,6 +11,7 @@ test("parser sorts, deduplicates and preserves the source input", () => {
   assert.deepEqual(parse(input), {
     fundCode: "TI2",
     fundName: "Example Fund",
+    period: "1y",
     periodMonths: 12,
     prices: [
       { date: "2026-10-19", price: 1 },
@@ -25,6 +26,7 @@ test("empty history is a valid result without an invented date range", () => {
   assert.deepEqual(parse(envelope()), {
     fundCode: "TI2",
     fundName: null,
+    period: "1y",
     periodMonths: 12,
     prices: [],
     returnedDateRange: null,
