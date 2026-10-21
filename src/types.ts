@@ -1,5 +1,7 @@
 export type HistoryPeriodMonths = 1 | 3 | 6 | 12 | 36 | 60;
 
+export type FundKind = "YAT" | "EMK" | "BYF" | "GYF" | "GSYF";
+
 export interface FundPrice {
   readonly date: string;
   readonly price: number;

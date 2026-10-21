@@ -1,26 +1,11 @@
 import { TefasError } from "./errors.js";
 import { parsePriceHistory } from "./parser.js";
-import { createRequestContext } from "./request-context.js";
-import { getRetryDelay, waitForRetry } from "./retry.js";
+import { executeRequest, withRequestContext } from "./request.js";
 import { requestPriceHistory } from "./transport.js";
+import { isRecord, normalizeFundCode } from "./validation.js";
 import type { GetPriceHistoryOptions, HistoryPeriodMonths, PriceHistory, TefasClientOptions } from "./types.js";
 
 const SUPPORTED_PERIODS: readonly number[] = [1, 3, 6, 12, 36, 60];
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function normalizeFundCode(value: unknown): string {
-  if (typeof value !== "string") {
-    throw new TefasError("INVALID_ARGUMENT", "Fund code must be a string.");
-  }
-  const normalized = value.trim().toUpperCase();
-  if (!/^[A-Z0-9]{3}$/.test(normalized)) {
-    throw new TefasError("INVALID_ARGUMENT", "Fund code must contain exactly three ASCII letters or digits.");
-  }
-  return normalized;
-}
 
 function isSupportedPeriod(value: unknown): value is HistoryPeriodMonths {
   return typeof value === "number" && SUPPORTED_PERIODS.includes(value);
@@ -61,34 +46,13 @@ export class TefasClient {
       throw new TefasError("INVALID_ARGUMENT", "Invalid cancellation signal.");
     }
 
-    const request = createRequestContext(this.timeoutMs, signal);
-    let retryIndex = 0;
-    try {
-      for (;;) {
-        request.signal.throwIfAborted();
-        try {
-          const payload = await requestPriceHistory(normalizedCode, periodMonths, globalThis.fetch, request.signal);
-          request.signal.throwIfAborted();
-          return parsePriceHistory(payload, normalizedCode, periodMonths);
-        } catch (error) {
-          request.signal.throwIfAborted();
-          if (retryIndex >= this.maxRetries) throw error;
-          const delay = getRetryDelay(error, retryIndex);
-          if (delay === undefined) throw error;
-          retryIndex += 1;
-          await waitForRetry(delay, request.signal);
-        }
-      }
-    } catch (cause) {
-      const code = request.getAbortCode();
-      if (code !== undefined) {
-        throw new TefasError(code, code === "TIMEOUT" ? "The request timed out." : "The request was cancelled.", {
-          cause: request.signal.reason,
-        });
-      }
-      throw cause;
-    } finally {
-      request.cleanup();
-    }
+    return withRequestContext(this.timeoutMs, signal, (request) =>
+      executeRequest(
+        request,
+        this.maxRetries,
+        (requestSignal) => requestPriceHistory(normalizedCode, periodMonths, globalThis.fetch, requestSignal),
+        (payload) => parsePriceHistory(payload, normalizedCode, periodMonths),
+      ),
+    );
   }
 }

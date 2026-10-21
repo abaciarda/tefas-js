@@ -12,14 +12,23 @@ export async function requestPriceHistory(
   fetcher: Fetcher = globalThis.fetch,
   signal?: AbortSignal,
 ): Promise<unknown> {
+  return postJson(PRICE_HISTORY_URL, { fonKodu: fundCode, dil: "TR", periyod: periodMonths }, fetcher, signal);
+}
+
+export async function postJson(
+  url: string,
+  body: Readonly<Record<string, unknown>>,
+  fetcher: Fetcher = globalThis.fetch,
+  signal?: AbortSignal,
+): Promise<unknown> {
   signal?.throwIfAborted();
   let response: Response;
 
   try {
-    response = await fetcher(PRICE_HISTORY_URL, {
+    response = await fetcher(url, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ fonKodu: fundCode, dil: "TR", periyod: periodMonths }),
+      body: JSON.stringify(body),
       ...(signal === undefined ? {} : { signal }),
     });
   } catch (cause) {
@@ -57,7 +66,10 @@ export async function requestPriceHistory(
     const payload: unknown = JSON.parse(text);
     return payload;
   } catch (cause) {
-    throw new TefasError("INVALID_RESPONSE", "The response is not valid JSON.", {
+    const contentType = response.headers.get("Content-Type")?.trim().toLowerCase();
+    const accessDenied = contentType?.startsWith("text/html") === true ||
+      /The requested URL was rejected|Erişim Engellendi|Web Application Firewall/iu.test(text);
+    throw new TefasError(accessDenied ? "ACCESS_DENIED" : "INVALID_RESPONSE", accessDenied ? "The data source denied access." : "The response is not valid JSON.", {
       status: response.status,
       cause,
     });

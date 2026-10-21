@@ -27,7 +27,7 @@ try {
 
   const entries = execFileSync('tar', ['-tf', archive], { encoding: 'utf8' })
     .split(/\r?\n/).filter((entry) => entry !== '' && !entry.endsWith('/'));
-  const modules = ['client', 'errors', 'index', 'parser', 'request-context', 'retry', 'transport', 'types'];
+  const modules = ['client', 'errors', 'index', 'parser', 'request', 'request-context', 'retry', 'transport', 'types', 'validation'];
   const required = new Set([
     'package/package.json',
     'package/README.md',

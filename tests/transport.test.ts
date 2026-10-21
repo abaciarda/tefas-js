@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { requestPriceHistory } from "../dist/transport.js";
-import { matchesCode } from "./helpers.js";
+import { postJson, requestPriceHistory } from "../dist/transport.js";
+import { TefasClient } from "../dist/index.js";
+import { matchesCode, withFetch } from "./helpers.js";
 
 test("transport sends the expected JSON request once", async () => {
   let calls = 0;
@@ -73,4 +74,52 @@ test("HTML and broken JSON are not valid JSON responses", async () => {
       matchesCode("INVALID_RESPONSE"),
     );
   }
+});
+
+test("HTML access rejections keep HTTP status and are never retried", async () => {
+  let calls = 0;
+  await withFetch(
+    async () => {
+      calls += 1;
+      return new Response("<html>Access blocked</html>", { headers: { "Content-Type": "Text/HTML; charset=utf-8" } });
+    },
+    async () => {
+      await assert.rejects(
+        () => new TefasClient({ maxRetries: 2 }).getPriceHistory("TI2", { periodMonths: 1 }),
+        (error) => matchesCode("ACCESS_DENIED")(error) && error.status === 200 && error.cause instanceof SyntaxError,
+      );
+    },
+  );
+  assert.equal(calls, 1);
+});
+
+test("plain-text WAF messages are access rejections in the shared JSON transport", async () => {
+  for (const body of ["Erişim Engellendi", "The requested URL was rejected", "Web Application Firewall"]) {
+    await assert.rejects(
+      () => postJson("https://www.tefas.gov.tr/api/funds/example", { example: true }, async (url, init) => {
+        assert.equal(url, "https://www.tefas.gov.tr/api/funds/example");
+        assert.equal(init.method, "POST");
+        assert.deepEqual(Object.fromEntries(new Headers(init.headers)), {
+          accept: "application/json",
+          "content-type": "application/json",
+        });
+        assert.ok(typeof init.body === "string");
+        assert.deepEqual(JSON.parse(init.body), { example: true });
+        return new Response(body);
+      }),
+      (error) => matchesCode("ACCESS_DENIED")(error) && error.status === 200,
+    );
+  }
+});
+
+test("unrelated malformed JSON stays invalid and valid JSON is not mistaken for WAF", async () => {
+  await assert.rejects(
+    () => postJson("https://www.tefas.gov.tr/api/funds/example", {}, async () => new Response("{broken")),
+    (error) => matchesCode("INVALID_RESPONSE")(error) && error.status === 200 && error.cause instanceof SyntaxError,
+  );
+  const payload = { message: "Web Application Firewall" };
+  assert.deepEqual(
+    await postJson("https://www.tefas.gov.tr/api/funds/example", {}, async () => Response.json(payload)),
+    payload,
+  );
 });
