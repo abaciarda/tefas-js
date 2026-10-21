@@ -20,6 +20,7 @@ export interface PriceHistory {
 
 export interface TefasClientOptions {
   readonly timeoutMs?: number;
+  readonly maxRetries?: number;
 }
 
 export interface GetPriceHistoryOptions {
