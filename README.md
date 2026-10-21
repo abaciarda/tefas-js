@@ -4,7 +4,7 @@ An unofficial TEFAS price history client for JavaScript and TypeScript.
 
 Fetch one fund's historical prices through a small ESM API, with validated responses, typed results, cancellation, and optional bounded retries. No runtime dependencies.
 
-> Release candidate: npm availability has not been confirmed yet. The installation command below applies after the first release is published under this name.
+> Early release. The public API may change in future 0.x versions.
 
 ## Installation
 

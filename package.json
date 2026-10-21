@@ -1,7 +1,7 @@
 {
   "name": "tefas-js",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "packageManager": "bun@1.4.3",
   "engines": {
@@ -21,6 +21,10 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abaciarda/tefas-js.git"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
