@@ -1,0 +1,24 @@
+{
+  "errorCode": null,
+  "errorMessage": null,
+  "resultList": [
+    {
+      "fonKodu": "ALTIN",
+      "fonUnvan": "ALTIN",
+      "fonTuru": "ALTIN",
+      "fonTurGetiri": 0.1098
+    },
+    {
+      "fonKodu": "BIST100",
+      "fonUnvan": "BIST100",
+      "fonTuru": "BIST100",
+      "fonTurGetiri": 0.127111
+    },
+    {
+      "fonKodu": "BIST30",
+      "fonUnvan": "BIST30",
+      "fonTuru": "BIST30",
+      "fonTurGetiri": 0.288434
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "errorCode": null,
+  "errorMessage": null,
+  "resultList": [
+    {
+      "fonKodu": "AE1",
+      "fonUnvan": "AGESA HAYAT VE EMEKLİLİK A.Ş. BİRİNCİ PARA PİYASASI EMEKLİLİK YATIRIM FONU",
+      "tarih": "2026-10-20",
+      "fiyat": 0.440442,
+      "tedPaySayisi": 189647880197.595,
+      "kisiSayisi": 578332,
+      "portfoyBuyukluk": 83528985778.54,
+      "borsaBultenFiyat": null,
+      "rn": 1
+    }
+  ],
+  "toplamSayi": 1,
+  "toplamSayfa": 1
+}

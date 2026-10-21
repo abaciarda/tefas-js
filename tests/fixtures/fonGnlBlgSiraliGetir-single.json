@@ -1,0 +1,19 @@
+{
+  "errorCode": null,
+  "errorMessage": null,
+  "resultList": [
+    {
+      "fonKodu": "TI2",
+      "fonUnvan": "İŞ PORTFÖY HİSSE SENEDİ (TL) FONU (HİSSE SENEDİ YOĞUN FON)",
+      "tarih": "2026-10-20",
+      "fiyat": 0.114357,
+      "tedPaySayisi": 24663540812,
+      "kisiSayisi": 18953,
+      "portfoyBuyukluk": 2820436458.29,
+      "borsaBultenFiyat": null,
+      "rn": 1
+    }
+  ],
+  "toplamSayi": 1,
+  "toplamSayfa": 1
+}

@@ -1,0 +1,37 @@
+{
+  "errorCode": null,
+  "errorMessage": null,
+  "data": [
+    {
+      "fonKod": "AAL",
+      "unvan": "ATA PORTFÖY PARA PİYASASI (TL) FONU",
+      "kurucuKod": "APY",
+      "kurucuAd": "ATA PORTFÖY YÖNETİMİ A.Ş.",
+      "oprKod": "ATA",
+      "oprAd": "ATA YATIRIM MENKUL KIYMETLER A.Ş.",
+      "durum": "AKTİF",
+      "tarih": "04/11/2019 21:33:47"
+    },
+    {
+      "fonKod": "AAS",
+      "unvan": "ATA PORTFÖY FON SEPETİ SERBEST FONU",
+      "kurucuKod": "APY",
+      "kurucuAd": "ATA PORTFÖY YÖNETİMİ A.Ş.",
+      "oprKod": "ATA",
+      "oprAd": "ATA YATIRIM MENKUL KIYMETLER A.Ş.",
+      "durum": "AKTİF",
+      "tarih": "08/06/2020 21:33:04"
+    },
+    {
+      "fonKod": "AAV",
+      "unvan": "ATA PORTFÖY İKİNCİ HİSSE SENEDİ (TL) FONU (HİSSE SENEDİ YOĞUN FON)",
+      "kurucuKod": "APY",
+      "kurucuAd": "ATA PORTFÖY YÖNETİMİ A.Ş.",
+      "oprKod": "ATA",
+      "oprAd": "ATA YATIRIM MENKUL KIYMETLER A.Ş.",
+      "durum": "AKTİF",
+      "tarih": "04/11/2019 21:33:47"
+    }
+  ],
+  "error": false
+}

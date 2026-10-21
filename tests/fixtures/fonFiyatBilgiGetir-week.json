@@ -1,0 +1,30 @@
+{
+  "errorCode": null,
+  "errorMessage": null,
+  "resultList": [
+    {
+      "fonKodu": "TI2",
+      "fonUnvan": "İŞ PORTFÖY HİSSE SENEDİ (TL) FONU (HİSSE SENEDİ YOĞUN FON)",
+      "kategoriDerece": 105,
+      "kategoriFonSay": 200,
+      "tarih": "2026-10-14",
+      "fiyat": 0.12074
+    },
+    {
+      "fonKodu": "TI2",
+      "fonUnvan": "İŞ PORTFÖY HİSSE SENEDİ (TL) FONU (HİSSE SENEDİ YOĞUN FON)",
+      "kategoriDerece": 105,
+      "kategoriFonSay": 200,
+      "tarih": "2026-10-15",
+      "fiyat": 0.119235
+    },
+    {
+      "fonKodu": "TI2",
+      "fonUnvan": "İŞ PORTFÖY HİSSE SENEDİ (TL) FONU (HİSSE SENEDİ YOĞUN FON)",
+      "kategoriDerece": 105,
+      "kategoriFonSay": 200,
+      "tarih": "2026-10-16",
+      "fiyat": 0.119134
+    }
+  ]
+}

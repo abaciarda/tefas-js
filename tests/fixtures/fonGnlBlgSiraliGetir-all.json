@@ -1,0 +1,63 @@
+{
+  "errorCode": null,
+  "errorMessage": null,
+  "resultList": [
+    {
+      "fonKodu": "AAL",
+      "fonUnvan": "ATA PORTFÖY PARA PİYASASI (TL) FONU",
+      "tarih": "2026-10-20",
+      "fiyat": 3.702471,
+      "tedPaySayisi": 461001800,
+      "kisiSayisi": 4232,
+      "portfoyBuyukluk": 1706845797.98,
+      "borsaBultenFiyat": null,
+      "rn": 1
+    },
+    {
+      "fonKodu": "AAS",
+      "fonUnvan": "ATA PORTFÖY FON SEPETİ SERBEST FONU",
+      "tarih": "2026-10-20",
+      "fiyat": 13.108326,
+      "tedPaySayisi": 1283711,
+      "kisiSayisi": 127,
+      "portfoyBuyukluk": 16827302.73,
+      "borsaBultenFiyat": null,
+      "rn": 2
+    },
+    {
+      "fonKodu": "AAV",
+      "fonUnvan": "ATA PORTFÖY İKİNCİ HİSSE SENEDİ (TL) FONU (HİSSE SENEDİ YOĞUN FON)",
+      "tarih": "2026-10-20",
+      "fiyat": 57.639594,
+      "tedPaySayisi": 3963666,
+      "kisiSayisi": 1759,
+      "portfoyBuyukluk": 228464100.04,
+      "borsaBultenFiyat": null,
+      "rn": 3
+    },
+    {
+      "fonKodu": "ABG",
+      "fonUnvan": "ATLAS PORTFÖY DÖRDÜNCÜ SERBEST (TL) FON",
+      "tarih": "2026-10-20",
+      "fiyat": 1.545304,
+      "tedPaySayisi": 130696078,
+      "kisiSayisi": 181,
+      "portfoyBuyukluk": 201965235.45,
+      "borsaBultenFiyat": null,
+      "rn": 4
+    },
+    {
+      "fonKodu": "ABJ",
+      "fonUnvan": "ALLBATROSS PORTFÖY BENZ HİSSE SENEDİ SERBEST (TL) ÖZEL FON (HİSSE SENEDİ YOĞUN FON)",
+      "tarih": "2026-10-20",
+      "fiyat": 0.392184,
+      "tedPaySayisi": 1337341991,
+      "kisiSayisi": 3,
+      "portfoyBuyukluk": 524483835.13,
+      "borsaBultenFiyat": null,
+      "rn": 5
+    }
+  ],
+  "toplamSayi": 2019,
+  "toplamSayfa": 1
+}

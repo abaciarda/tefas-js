@@ -1,0 +1,270 @@
+[
+  {
+    "name": "fonFiyatBilgiGetir-week",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "resultList": "array"
+    },
+    "rowCount": 6,
+    "firstRow": {
+      "fonKodu": "string",
+      "fonUnvan": "string",
+      "kategoriDerece": "number",
+      "kategoriFonSay": "number",
+      "tarih": "string",
+      "fiyat": "number"
+    },
+    "sourceCode": null,
+    "sourceMessage": null
+  },
+  {
+    "name": "fonFiyatBilgiGetir-ytd",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "resultList": "array"
+    },
+    "rowCount": 201,
+    "firstRow": {
+      "fonKodu": "string",
+      "fonUnvan": "string",
+      "kategoriDerece": "number",
+      "kategoriFonSay": "number",
+      "tarih": "string",
+      "fiyat": "number"
+    },
+    "sourceCode": null,
+    "sourceMessage": null
+  },
+  {
+    "name": "fonGnlBlgSiraliGetir-single",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "resultList": "array",
+      "toplamSayi": "number",
+      "toplamSayfa": "number"
+    },
+    "rowCount": 1,
+    "firstRow": {
+      "fonKodu": "string",
+      "fonUnvan": "string",
+      "tarih": "string",
+      "fiyat": "number",
+      "tedPaySayisi": "number",
+      "kisiSayisi": "number",
+      "portfoyBuyukluk": "number",
+      "borsaBultenFiyat": "null",
+      "rn": "number"
+    },
+    "sourceCode": null,
+    "sourceMessage": null
+  },
+  {
+    "name": "fonGnlBlgSiraliGetir-pension",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "resultList": "array",
+      "toplamSayi": "number",
+      "toplamSayfa": "number"
+    },
+    "rowCount": 1,
+    "firstRow": {
+      "fonKodu": "string",
+      "fonUnvan": "string",
+      "tarih": "string",
+      "fiyat": "number",
+      "tedPaySayisi": "number",
+      "kisiSayisi": "number",
+      "portfoyBuyukluk": "number",
+      "borsaBultenFiyat": "null",
+      "rn": "number"
+    },
+    "sourceCode": null,
+    "sourceMessage": null
+  },
+  {
+    "name": "fonGnlBlgSiraliGetir-all",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "resultList": "array",
+      "toplamSayi": "number",
+      "toplamSayfa": "number"
+    },
+    "rowCount": 2019,
+    "firstRow": {
+      "fonKodu": "string",
+      "fonUnvan": "string",
+      "tarih": "string",
+      "fiyat": "number",
+      "tedPaySayisi": "number",
+      "kisiSayisi": "number",
+      "portfoyBuyukluk": "number",
+      "borsaBultenFiyat": "null",
+      "rn": "number"
+    },
+    "sourceCode": null,
+    "sourceMessage": null
+  },
+  {
+    "name": "fonGnlBlgSiraliGetir-weekend",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "string",
+      "resultList": "null",
+      "toplamSayi": "null",
+      "toplamSayfa": "null"
+    },
+    "rowCount": null,
+    "firstRow": null,
+    "sourceCode": null,
+    "sourceMessage": "Index 0 out of bounds for length 0"
+  },
+  {
+    "name": "dagilimSiraliGetirT",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "resultList": "array",
+      "toplamSayi": "number",
+      "toplamSayfa": "number"
+    },
+    "rowCount": 1995,
+    "firstRow": {
+      "fonKodu": "string",
+      "fonUnvan": "string",
+      "tarih": "string",
+      "bb": "null",
+      "byf": "null",
+      "d": "null",
+      "db": "null",
+      "bpp": "null",
+      "btaa": "null",
+      "btas": "null",
+      "dt": "number",
+      "dot": "null",
+      "eut": "null",
+      "fb": "number",
+      "fkb": "null",
+      "gas": "null",
+      "gsykb": "null",
+      "gsyy": "null",
+      "gykb": "null",
+      "gyy": "null",
+      "hb": "number",
+      "hs": "null",
+      "kba": "null",
+      "kh": "null",
+      "khau": "null",
+      "khd": "null",
+      "khtl": "number",
+      "kks": "null",
+      "kksd": "null",
+      "kkstl": "null",
+      "kksyd": "null",
+      "km": "null",
+      "kmbyf": "null",
+      "kmkba": "null",
+      "kmkks": "null",
+      "kibd": "null",
+      "osks": "null",
+      "ost": "number",
+      "r": "null",
+      "t": "null",
+      "tpp": "number",
+      "tr": "number",
+      "vdm": "number",
+      "vm": "null",
+      "vmau": "null",
+      "vmd": "null",
+      "vmtl": "number",
+      "vint": "number",
+      "yba": "null",
+      "ybkb": "null",
+      "ybosb": "null",
+      "ybyf": "null",
+      "yhs": "null",
+      "ymk": "null",
+      "yyf": "null",
+      "oksyd": "null",
+      "osdb": "null",
+      "bilFiyat": "string"
+    },
+    "sourceCode": null,
+    "sourceMessage": null
+  },
+  {
+    "name": "fonProfilDtyGetir",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "resultList": "array"
+    },
+    "rowCount": 9,
+    "firstRow": {
+      "fonKodu": "string",
+      "fonUnvan": "string",
+      "fonTuru": "string",
+      "fonTurGetiri": "number"
+    },
+    "sourceCode": null,
+    "sourceMessage": null
+  },
+  {
+    "name": "fonTipiGetir",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "fonTipi": "string"
+    },
+    "rowCount": null,
+    "firstRow": null,
+    "sourceCode": null,
+    "sourceMessage": null
+  },
+  {
+    "name": "getFplFonList",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "data": "array",
+      "error": "boolean"
+    },
+    "rowCount": 941,
+    "firstRow": {
+      "fonKod": "string",
+      "unvan": "string",
+      "kurucuKod": "string",
+      "kurucuAd": "string",
+      "oprKod": "string",
+      "oprAd": "string",
+      "durum": "string",
+      "tarih": "string"
+    },
+    "sourceCode": null,
+    "sourceMessage": null
+  }
+]
