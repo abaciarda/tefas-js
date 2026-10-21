@@ -15,10 +15,17 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "bun run build && bun run test:node",
+    "test:node": "node --test tests/parser.test.js tests/transport.test.js tests/retry.test.js tests/client.test.js",
+    "test:bun": "bun test ./tests",
+    "check": "bun run typecheck && bun run build && bun run test:node && bun run test:bun",
+    "verify:package": "bun run check && node scripts/verify-package.mjs"
   },
   "devDependencies": {
     "typescript": "7.0.2"
