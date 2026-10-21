@@ -1,3 +1,4 @@
+export { TefasClient } from "./client.js";
 export { TefasError } from "./errors.js";
 
 export type { TefasErrorCode, TefasErrorOptions } from "./errors.js";
