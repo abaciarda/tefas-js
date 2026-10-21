@@ -66,7 +66,6 @@ try {
   console.log('Consumer TypeScript OK');
   console.log('Package verification OK');
 } finally {
-  // Yalnızca bu çalıştırmada oluşturulan geçici klasörü temizle.
   const resolved = realpathSync(scratch);
   assert.equal(resolved, scratch);
   assert.equal(dirname(resolved), temporaryRoot);

@@ -27,7 +27,7 @@ export function createRequestContext(timeoutMs: number, userSignal?: AbortSignal
     getAbortCode: (): AbortCode | undefined => abortCode,
     cleanup: () => {
       clearTimeout(timer);
-      userSignal?.removeEventListener('abort', onUserAbort)
-    }
-  }
+      userSignal?.removeEventListener("abort", onUserAbort);
+    },
+  };
 }

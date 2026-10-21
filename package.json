@@ -1,8 +1,25 @@
 {
   "name": "tefas-js",
   "version": "0.1.0",
+  "description": "Unofficial, dependency-free TEFAS fund price history client for JavaScript and TypeScript.",
+  "keywords": [
+    "tefas",
+    "fund",
+    "fon",
+    "price-history",
+    "turkey",
+    "takasbank",
+    "finance",
+    "typescript"
+  ],
+  "author": "abaciarda",
+  "homepage": "https://github.com/abaciarda/tefas-js#readme",
+  "bugs": {
+    "url": "https://github.com/abaciarda/tefas-js/issues"
+  },
   "private": false,
   "type": "module",
+  "sideEffects": false,
   "packageManager": "bun@1.4.3",
   "engines": {
     "node": ">=22"
@@ -34,7 +51,8 @@
     "test:bun": "bun test ./tests",
     "check": "bun run typecheck && bun run build && bun run test:node && bun run test:bun",
     "verify:package": "bun run check && node scripts/verify-package.mjs",
-    "prepublishOnly": "bun run verify:package"
+    "prepublishOnly": "bun run verify:package",
+    "smoke:live": "bun run build && node scripts/live-smoke.mjs"
   },
   "devDependencies": {
     "typescript": "7.0.2"

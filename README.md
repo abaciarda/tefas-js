@@ -17,14 +17,14 @@ You can also install the published package with pnpm or Bun. The supported runti
 ## Usage
 
 ```ts
-import { TefasClient } from 'tefas-js';
+import { TefasClient } from "tefas-js";
 
 const client = new TefasClient({
   timeoutMs: 10_000,
   maxRetries: 0,
 });
 
-const history = await client.getPriceHistory('TI2', {
+const history = await client.getPriceHistory("TI2", {
   periodMonths: 12,
 });
 
@@ -45,7 +45,7 @@ An empty response produces an empty price array and a `null` returned date range
 
 ```ts
 const controller = new AbortController();
-const pending = client.getPriceHistory('TI2', {
+const pending = client.getPriceHistory("TI2", {
   periodMonths: 1,
   signal: controller.signal,
 });
@@ -73,10 +73,10 @@ Backoff includes jitter. Supported `Retry-After` values are respected without sh
 ## Errors
 
 ```ts
-import { TefasError } from 'tefas-js';
+import { TefasError } from "tefas-js";
 
 try {
-  await client.getPriceHistory('TI2', { periodMonths: 12 });
+  await client.getPriceHistory("TI2", { periodMonths: 12 });
 } catch (error) {
   if (error instanceof TefasError) {
     console.error(error.code, error.message);
@@ -102,7 +102,15 @@ bun run verify:package
 
 `check` builds the package and runs the same offline tests under Node.js and Bun. `verify:package` also inspects the tarball and tests a separate JavaScript/TypeScript consumer. It does not publish anything.
 
+`bun run smoke:live` sends one real request to TEFAS for `TI2`. Pass another fund code after `--`. It is not part of `check` or CI.
+
 The CI matrix covers Node.js 22 and 24 on Linux and Windows. A configured matrix is separate from a successful CI run; check the repository's workflow results for the actual status.
+
+## Rate limits
+
+TEFAS does not document its API and may throttle or block clients that send many requests in a short time. This package does not queue or space out requests for you. When fetching several funds, send requests one at a time and keep them infrequent. A rejected or throttled request surfaces as `ACCESS_DENIED` or `HTTP_ERROR`, and retries stay disabled unless you opt in.
+
+The client does not imitate a browser or try to bypass access controls. If TEFAS blocks a request, the error is reported instead of worked around.
 
 ## Scope
 
