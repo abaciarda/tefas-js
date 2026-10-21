@@ -1,3 +1,7 @@
+export { TefasError } from "./errors.js";
+
+export type { TefasErrorCode, TefasErrorOptions } from "./errors.js";
+
 export type {
   FundPrice,
   GetPriceHistoryOptions,
@@ -5,4 +9,4 @@ export type {
   PriceHistory,
   ReturnedDateRange,
   TefasClientOptions,
-} from "./types.ts";
+} from "./types.js";
