@@ -31,6 +31,7 @@ try {
   const required = new Set([
     'package/package.json',
     'package/README.md',
+    'package/README.en.md',
     'package/LICENSE',
     ...modules.flatMap((name) => [`package/dist/${name}.js`, `package/dist/${name}.d.ts`]),
   ]);

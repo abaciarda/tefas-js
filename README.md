@@ -1,47 +1,62 @@
 # tefas-js
 
-An unofficial TEFAS price history client for JavaScript and TypeScript.
+[Türkçe](README.md) | [English](README.en.md)
 
-Fetch one fund's historical prices through a small ESM API, with validated responses, typed results, cancellation, and optional bounded retries. No runtime dependencies.
+TEFAS verilerine erişmek için JavaScript/TypeScript kütüphanesi.
 
-> Early release. The public API may change in future 0.x versions.
+Şu an fon koduyla fiyat verisi çekebilirsiniz. Node.js 22 ve üzeriyle çalışır, ek bağımlılık gerektirmez.
 
-## Installation
+## Kurulum
 
 ```sh
 npm install tefas-js
 ```
 
-You can also install the published package with pnpm or Bun. The supported runtime target is Node.js 22+. Bun is used for development and is checked separately.
+Bun veya pnpm de kullanabilirsiniz:
 
-## Usage
+```sh
+bun add tefas-js
+pnpm add tefas-js
+```
+
+## Kullanım
 
 ```ts
 import { TefasClient } from "tefas-js";
 
-const client = new TefasClient({
-  timeoutMs: 10_000,
-  maxRetries: 0,
-});
+const client = new TefasClient();
+const history = await client.getPriceHistory("TI2", { periodMonths: 12 });
 
-const history = await client.getPriceHistory("TI2", {
-  periodMonths: 12,
-});
-
-console.log(history.fundCode);
+console.log(history.fundName);
 console.log(history.prices);
 console.log(history.returnedDateRange);
 ```
 
-`periodMonths` is required and accepts `1`, `3`, `6`, `12`, `36`, or `60`. Fund codes are trimmed, uppercased, and checked as three ASCII letters or digits.
+`periodMonths`, kaç aylık veri istediğinizi belirtir. `1`, `3`, `6`, `12`, `36` veya `60` olabilir.
 
-Prices are sorted from oldest to newest. Dates remain `YYYY-MM-DD` strings and prices are JavaScript numbers. Identical entries for the same date are deduplicated; conflicting prices are rejected.
+Fon kodunda büyük/küçük harf ve baştaki ya da sondaki boşluklar sorun olmaz. Örneğin `" ti2 "`, `"TI2"` olarak işlenir. Kod üç harf veya rakamdan oluşmalıdır.
 
-An empty response produces an empty price array and a `null` returned date range. It does not automatically mean the fund does not exist. The returned range describes the records received, not a guarantee of complete historical coverage.
+`prices` içindeki kayıtlar tarihe göre eskiden yeniye sıralanır. Her kayıtta `date` ve `price` bulunur:
 
-## Timeouts and cancellation
+```ts
+{ date: "2026-10-21", price: 0.117352 }
+```
 
-`timeoutMs` defaults to 10 seconds and covers requests, body reading, and retry waits within one query. It must be an integer from `1` to `2_147_483_647`.
+Aynı tarihe ait tekrar eden kayıtlar birleştirilir. Aynı gün için farklı fiyatlar gelirse hata döner. TEFAS boş veri döndürürse `prices` boş bir dizi, `returnedDateRange` ise `null` olur; bu, fonun bulunmadığı anlamına gelmeyebilir.
+
+`returnedDateRange`, gelen verinin ilk ve son tarihini gösterir. İstenen dönemdeki tüm kayıtların geldiğini garanti etmez.
+
+## Zaman aşımı ve iptal
+
+Varsayılan zaman aşımı 10 saniyedir. İstek, yanıtın okunması ve varsa yeniden denemeler bu süreye dahildir. Süreyi milisaniye olarak değiştirebilirsiniz:
+
+```ts
+const client = new TefasClient({ timeoutMs: 15_000 });
+```
+
+`timeoutMs`, `1` ile `2_147_483_647` arasında bir tam sayı olmalıdır. Süre dolarsa `TIMEOUT` hatası alırsınız.
+
+İsteği kendiniz iptal etmek için `AbortController` kullanabilirsiniz:
 
 ```ts
 const controller = new AbortController();
@@ -50,7 +65,6 @@ const pending = client.getPriceHistory("TI2", {
   signal: controller.signal,
 });
 
-// From a cancel button or another application event:
 controller.abort();
 
 try {
@@ -60,23 +74,32 @@ try {
 }
 ```
 
-User cancellation produces `ABORTED`; the client's own deadline produces `TIMEOUT`.
+Bu durumda hata kodu `ABORTED` olur.
 
-## Retry policy
+## Yeniden deneme
 
-Retries are disabled by default. Set `maxRetries` to `1` or `2` to opt in. Two retries mean at most three HTTP attempts.
-
-Only network failures and HTTP `429`, `502`, `503`, and `504` are eligible. Access denials, invalid input, malformed data, source application errors, cancellation, and timeouts are not retried.
-
-Backoff includes jitter. Supported `Retry-After` values are respected without shortening the requested wait. Unknown header formats or waits above 60 seconds stop automatic retries. The total query timeout still applies.
-
-## Errors
+Başarısız istekler varsayılan olarak tekrar gönderilmez. Açmak isterseniz:
 
 ```ts
-import { TefasError } from "tefas-js";
+const client = new TefasClient({ maxRetries: 2 });
+```
+
+`maxRetries`, `0`, `1` veya `2` olabilir. `2` seçerseniz ilk istekle birlikte en fazla üç deneme yapılır.
+
+Yalnızca ağ hataları ve HTTP `429`, `502`, `503`, `504` yanıtları tekrar denenir. Diğer hatalarda, iptalde veya zaman aşımında işlem durur.
+
+Denemeler arasında kısa bir bekleme vardır. TEFAS'ın `Retry-After` başlığıyla istediği bekleme süresi de dikkate alınır. Bu süre 60 saniyeyi aşıyorsa veya başlık anlaşılamıyorsa tekrar denenmez. Toplam zaman aşımı her durumda geçerlidir.
+
+## Hata yakalama
+
+```ts
+import { TefasClient, TefasError } from "tefas-js";
+
+const client = new TefasClient();
 
 try {
-  await client.getPriceHistory("TI2", { periodMonths: 12 });
+  const history = await client.getPriceHistory("TI2", { periodMonths: 12 });
+  console.log(history.prices);
 } catch (error) {
   if (error instanceof TefasError) {
     console.error(error.code, error.message);
@@ -86,13 +109,28 @@ try {
 }
 ```
 
-Error codes: `INVALID_ARGUMENT`, `ACCESS_DENIED`, `HTTP_ERROR`, `SOURCE_ERROR`, `INVALID_RESPONSE`, `NETWORK_ERROR`, `TIMEOUT`, and `ABORTED`.
+| Kod | Anlamı |
+| --- | --- |
+| `INVALID_ARGUMENT` | Fon kodu veya seçenekler geçersiz. |
+| `ACCESS_DENIED` | TEFAS erişimi reddetti (HTTP 401 veya 403). |
+| `HTTP_ERROR` | Diğer başarısız HTTP yanıtları. |
+| `SOURCE_ERROR` | TEFAS, yanıtın içinde hata bildirdi. |
+| `INVALID_RESPONSE` | Yanıt beklenen biçimde değil. |
+| `NETWORK_ERROR` | Bağlantı kurulamadı veya yanıt okunamadı. |
+| `TIMEOUT` | İstek için ayrılan süre doldu. |
+| `ABORTED` | İstek kullanıcı tarafından iptal edildi. |
 
-Additional information can include `status`, `sourceCode`, `retryAfterMs`, and the original `cause`. Branch on `code`, not message text.
+Hataya göre `status`, `sourceCode`, `retryAfterMs` ve `cause` alanları da bulunabilir. Kodunuzda hataları ayırmak için mesaj yerine `code` alanını kullanın.
 
-## Development
+## TEFAS'a istek gönderirken
 
-Use the Bun version recorded in `package.json`.
+Çok sayıda isteği kısa sürede göndermek TEFAS tarafından engellenmenize yol açabilir. Birden fazla fonu sorgularken istekleri tek tek gönderin ve aralarında bekleyin. Kütüphane sizin yerinize istek kuyruğu oluşturmaz.
+
+Erişim engellenirse hata döner. Kütüphane tarayıcı taklidi yapmaz veya bu engeli aşmaya çalışmaz.
+
+## Geliştirme
+
+`package.json` dosyasındaki Bun sürümünü kullanın.
 
 ```sh
 bun install --frozen-lockfile
@@ -100,26 +138,25 @@ bun run check
 bun run verify:package
 ```
 
-`check` builds the package and runs the same offline tests under Node.js and Bun. `verify:package` also inspects the tarball and tests a separate JavaScript/TypeScript consumer. It does not publish anything.
+`check`, TypeScript kontrolünü, derlemeyi ve Node.js/Bun testlerini çalıştırır. `verify:package`, bunlara ek olarak arşivin içeriğini ve ayrı bir projede kurulup kullanılabildiğini kontrol eder.
 
-`bun run smoke:live` sends one real request to TEFAS for `TI2`. Pass another fund code after `--`. It is not part of `check` or CI.
+Gerçek TEFAS bağlantısını denemek için:
 
-The CI matrix covers Node.js 22 and 24 on Linux and Windows. A configured matrix is separate from a successful CI run; check the repository's workflow results for the actual status.
+```sh
+bun run smoke:live
+bun run smoke:live -- TI2
+```
 
-## Rate limits
+Bu komut tek bir istek gönderir. Normal testlere veya CI'a dahil değildir. CI'da Node.js 22 ve 24, Windows ve Linux üzerinde kontrol edilir.
 
-TEFAS does not document its API and may throttle or block clients that send many requests in a short time. This package does not queue or space out requests for you. When fetching several funds, send requests one at a time and keep them infrequent. A rejected or throttled request surfaces as `ACCESS_DENIED` or `HTTP_ERROR`, and retries stay disabled unless you opt in.
+## Projenin durumu
 
-The client does not imitate a browser or try to bypass access controls. If TEFAS blocks a request, the error is reported instead of worked around.
+İlk sürüm yalnızca tek fonun fiyat verisini sorgular. Fon listesi, ek fon bilgileri, toplu sorgu ve önbellekleme henüz yok. API, sonraki 0.x sürümlerinde değişebilir.
 
-## Scope
+Paket ESM olarak sunulur. CommonJS ve tarayıcı desteği yoktur. Kurulumda veya import sırasında istek gönderilmez; istek yalnızca `getPriceHistory` çağrıldığında yapılır.
 
-The first version focuses on one fund's price history. Fund discovery, additional fund details, multi-fund queries, and caching are future work. CommonJS and browser compatibility are not claimed.
+## Lisans
 
-No requests run during package installation or import. TEFAS is queried when you call the client method.
+[MIT](LICENSE).
 
-## License and affiliation
-
-MIT. See [LICENSE](LICENSE).
-
-This project is not affiliated with or endorsed by TEFAS. The code license does not grant rights to TEFAS data or establish permission to access the source service.
+Bu proje TEFAS'ın resmî bir kütüphanesi değildir. MIT lisansı kod için geçerlidir; TEFAS verilerini kullanma veya servise erişim izni vermez.
