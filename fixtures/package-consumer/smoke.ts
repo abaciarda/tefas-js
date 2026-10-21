@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import type { HistoryPeriodMonths } from 'tefas-js';
 
 const originalFetch = globalThis.fetch;
 let calls = 0;
@@ -6,6 +7,8 @@ let calls = 0;
 globalThis.fetch = async (url, init) => {
   calls += 1;
   assert.equal(url, 'https://www.tefas.gov.tr/api/funds/fonFiyatBilgiGetir');
+  assert.ok(init);
+  assert.ok(typeof init.body === 'string');
   assert.deepEqual(JSON.parse(init.body), { fonKodu: 'TI2', dil: 'TR', periyod: 12 });
   return Response.json({
     errorCode: null,
@@ -31,7 +34,7 @@ try {
   });
 
   await assert.rejects(
-    () => client.getPriceHistory('TI2', { periodMonths: 2 }),
+    () => client.getPriceHistory('TI2', { periodMonths: 2 as HistoryPeriodMonths }),
     (error) => error instanceof TefasError && error.code === 'INVALID_ARGUMENT',
   );
   assert.equal(calls, 1);

@@ -96,6 +96,8 @@ Additional information can include `status`, `sourceCode`, `retryAfterMs`, and t
 
 Use the Bun version recorded in `package.json`.
 
+Source code, tests, and development scripts are written in TypeScript. Node.js checks run the compiled JavaScript, while Bun tests run the TypeScript files directly. The npm package includes only the compiled library and its type declarations, along with the package metadata and documentation.
+
 ```sh
 bun install --frozen-lockfile
 bun run check

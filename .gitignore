@@ -1,5 +1,8 @@
 node_modules/
 dist/
+.test-build/
+.script-build/
+.smoke-build/
 *.tgz
 .env
 .env.*

@@ -25,7 +25,7 @@ test("retry policy selects temporary failures and respects server wait", () => {
   for (const error of [
     new Error("Unknown"),
     new TefasError("HTTP_ERROR", "Failure", { status: 500 }),
-    ...["INVALID_ARGUMENT", "ACCESS_DENIED", "SOURCE_ERROR", "INVALID_RESPONSE", "TIMEOUT", "ABORTED"].map(
+    ...(["INVALID_ARGUMENT", "ACCESS_DENIED", "SOURCE_ERROR", "INVALID_RESPONSE", "TIMEOUT", "ABORTED"] as const).map(
       (code) => new TefasError(code, "Failure"),
     ),
   ]) {

@@ -132,6 +132,8 @@ Erişim engellenirse hata döner. Kütüphane tarayıcı taklidi yapmaz veya bu 
 
 `package.json` dosyasındaki Bun sürümünü kullanın.
 
+Kaynak kod, testler ve geliştirme betikleri TypeScript ile yazılır. Node.js kontrollerinde önce JavaScript'e derlenir; Bun testleri doğrudan TypeScript dosyalarını çalıştırır. npm paketinde derlenmiş kütüphane, tip dosyaları, paket bilgileri ve belgeler bulunur.
+
 ```sh
 bun install --frozen-lockfile
 bun run check

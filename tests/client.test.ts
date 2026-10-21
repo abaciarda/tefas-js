@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import { TefasClient } from "../dist/index.js";
+import type { GetPriceHistoryOptions, TefasClientOptions, TefasErrorCode } from "../dist/index.js";
 import { envelope, row, matchesCode, withFetch, pendingFetch } from "./helpers.js";
+import type { TestFetcher } from "./helpers.js";
 
 test("client construction is passive and history normalizes the request", async () => {
   let calls = 0;
@@ -36,14 +38,14 @@ test("invalid client and query arguments never send HTTP requests", async () => 
     },
     async () => {
       for (const timeoutMs of [0, -1, 1.5, NaN, Infinity, "10", null, 2_147_483_648]) {
-        assert.throws(() => new TefasClient({ timeoutMs }), matchesCode("INVALID_ARGUMENT"));
+        assert.throws(() => new TefasClient({ timeoutMs } as TefasClientOptions), matchesCode("INVALID_ARGUMENT"));
       }
       for (const maxRetries of [-1, 3, 0.5, "1", NaN, Infinity, null]) {
-        assert.throws(() => new TefasClient({ maxRetries }), matchesCode("INVALID_ARGUMENT"));
+        assert.throws(() => new TefasClient({ maxRetries } as TefasClientOptions), matchesCode("INVALID_ARGUMENT"));
       }
       const client = new TefasClient();
       for (const code of [null, 123, "", "TI-2", "T I2", "TOOLONG"]) {
-        await assert.rejects(() => client.getPriceHistory(code, { periodMonths: 1 }), matchesCode("INVALID_ARGUMENT"));
+        await assert.rejects(() => client.getPriceHistory(code as string, { periodMonths: 1 }), matchesCode("INVALID_ARGUMENT"));
       }
       for (const options of [
         undefined,
@@ -56,7 +58,7 @@ test("invalid client and query arguments never send HTTP requests", async () => 
         { periodMonths: 1, signal: {} },
         { periodMonths: 1, typo: true },
       ]) {
-        await assert.rejects(() => client.getPriceHistory("TI2", options), matchesCode("INVALID_ARGUMENT"));
+        await assert.rejects(() => client.getPriceHistory("TI2", options as GetPriceHistoryOptions), matchesCode("INVALID_ARGUMENT"));
       }
       assert.equal(calls, 0);
     },
@@ -103,14 +105,15 @@ test("temporary HTTP and network failures can recover on a retry", async () => {
 });
 
 test("permanent failures and excessive server waits are not retried", async () => {
-  for (const [factory, code] of [
+  const cases: readonly (readonly [() => Response, TefasErrorCode])[] = [
     [() => new Response("Forbidden", { status: 403 }), "ACCESS_DENIED"],
     [() => new Response("Failure", { status: 500 }), "HTTP_ERROR"],
     [() => new Response("not JSON"), "INVALID_RESPONSE"],
     [() => Response.json({ errorCode: 7, errorMessage: "Failure" }), "SOURCE_ERROR"],
     [() => new Response("Wait", { status: 429, headers: { "Retry-After": "86400" } }), "HTTP_ERROR"],
     [() => new Response("Wait", { status: 503, headers: { "Retry-After": "invalid" } }), "HTTP_ERROR"],
-  ]) {
+  ];
+  for (const [factory, code] of cases) {
     let calls = 0;
     await withFetch(
       async () => {
@@ -149,7 +152,7 @@ test("already cancelled queries send no request and keep the reason", async () =
 });
 
 test("timeout applies before headers and while reading the body", async () => {
-  const bodyPending = async (_url, init) =>
+  const bodyPending: TestFetcher = async (_url, init) =>
     new Response(
       new ReadableStream({
         start(stream) {

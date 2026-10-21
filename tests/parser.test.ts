@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { parsePriceHistory } from "../dist/parser.js";
 import { envelope, row, matchesCode } from "./helpers.js";
 
-const parse = (payload) => parsePriceHistory(payload, "TI2", 12);
+const parse = (payload: unknown) => parsePriceHistory(payload, "TI2", 12);
 
 test("parser sorts, deduplicates and preserves the source input", () => {
   const input = envelope([row("2026-10-20", 2), row("2026-10-19", 1), row("2026-10-19", 1)]);
@@ -86,5 +86,7 @@ test("invalid rows and conflicting metadata are rejected", () => {
   ]) {
     assert.throws(() => parse(envelope(rows)), matchesCode("INVALID_RESPONSE"));
   }
-  assert.equal(parse(envelope([row("2024-02-29", 0)])).prices[0].price, 0);
+  const first = parse(envelope([row("2024-02-29", 0)])).prices[0];
+  assert.ok(first);
+  assert.equal(first.price, 0);
 });

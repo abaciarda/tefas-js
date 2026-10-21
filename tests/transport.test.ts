@@ -12,6 +12,7 @@ test("transport sends the expected JSON request once", async () => {
     const headers = new Headers(init.headers);
     assert.equal(headers.get("Content-Type"), "application/json");
     assert.equal(headers.get("Accept"), "application/json");
+    assert.ok(typeof init.body === "string");
     assert.deepEqual(JSON.parse(init.body), { fonKodu: "TI2", dil: "TR", periyod: 12 });
     return Response.json({ arbitrary: true });
   });

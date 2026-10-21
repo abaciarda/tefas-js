@@ -46,16 +46,19 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "bun run build && tsc -p tsconfig.tests.json --noEmit && tsc -p tsconfig.scripts.json --noEmit",
     "test": "bun run build && bun run test:node",
-    "test:node": "node --test tests/parser.test.js tests/transport.test.js tests/retry.test.js tests/client.test.js",
+    "build:tests": "tsc -p tsconfig.tests.json",
+    "build:scripts": "tsc -p tsconfig.scripts.json",
+    "test:node": "bun run build:tests && node --test .test-build/parser.test.js .test-build/transport.test.js .test-build/retry.test.js .test-build/client.test.js",
     "test:bun": "bun test ./tests",
-    "check": "bun run typecheck && bun run build && bun run test:node && bun run test:bun",
-    "verify:package": "bun run check && node scripts/verify-package.mjs",
+    "check": "bun run typecheck && bun run test:node && bun run test:bun",
+    "verify:package": "bun run check && bun run build:scripts && node .script-build/verify-package.js",
     "prepublishOnly": "bun run verify:package",
-    "smoke:live": "bun run build && node scripts/live-smoke.mjs"
+    "smoke:live": "bun run build && bun run build:scripts && node .script-build/live-smoke.js"
   },
   "devDependencies": {
+    "@types/node": "22",
     "typescript": "7.0.2"
   },
   "license": "MIT"

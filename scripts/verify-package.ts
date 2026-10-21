@@ -16,7 +16,7 @@ const scratch = realpathSync(mkdtempSync(join(temporaryRoot, 'tefas-js-package-'
 const consumer = join(scratch, 'consumer');
 const archive = join(scratch, `tefas-js-${manifest.version}.tgz`);
 
-function run(command, args, cwd) {
+function run(command: string, args: string[], cwd: string) {
   execFileSync(command, args, { cwd, stdio: 'inherit' });
 }
 
@@ -61,8 +61,9 @@ try {
   assert.equal(Object.keys(installed.dependencies ?? {}).length, 0);
   assert.equal(existsSync(join(consumer, 'node_modules', 'typescript')), false);
 
-  run('node', ['smoke.js'], consumer);
-  run('bun', ['smoke.js'], consumer);
+  run('bun', ['run', 'tsc', '-p', join(consumer, 'tsconfig.smoke.json'), '--typeRoots', join(root, 'node_modules', '@types')], root);
+  run('node', ['.smoke-build/smoke.js'], consumer);
+  run('bun', ['.smoke-build/smoke.js'], consumer);
   run('bun', ['run', 'tsc', '-p', join(consumer, 'tsconfig.json')], root);
   console.log('Consumer TypeScript OK');
   console.log('Package verification OK');
