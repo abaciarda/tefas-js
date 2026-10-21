@@ -1,6 +1,6 @@
 {
   "name": "tefas-js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Unofficial, dependency-free TEFAS fund price history client for JavaScript and TypeScript.",
   "keywords": [
     "tefas",
