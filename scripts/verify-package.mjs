@@ -10,7 +10,6 @@ import { fileURLToPath } from 'node:url';
 const root = realpathSync(fileURLToPath(new URL('../', import.meta.url)));
 const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 assert.equal(manifest.name, 'tefas-js', 'Update consumer fixtures when renaming the package.');
-assert.equal(manifest.private, true, 'Keep this learning package private until the release lesson.');
 
 const temporaryRoot = realpathSync(tmpdir());
 const scratch = realpathSync(mkdtempSync(join(temporaryRoot, 'tefas-js-package-')));
@@ -31,6 +30,8 @@ try {
   const modules = ['client', 'errors', 'index', 'parser', 'request-context', 'retry', 'transport', 'types'];
   const required = new Set([
     'package/package.json',
+    'package/README.md',
+    'package/LICENSE',
     ...modules.flatMap((name) => [`package/dist/${name}.js`, `package/dist/${name}.d.ts`]),
   ]);
   const allowed = new Set([
