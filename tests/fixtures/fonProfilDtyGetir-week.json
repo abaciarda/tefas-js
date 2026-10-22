@@ -1,0 +1,48 @@
+{
+  "errorCode": null,
+  "errorMessage": null,
+  "resultList": [
+    {
+      "fonKodu": "ALTIN",
+      "fonUnvan": "ALTIN",
+      "fonTuru": "ALTIN",
+      "fonTurGetiri": 0.001026
+    },
+    {
+      "fonKodu": "BIST100",
+      "fonUnvan": "BIST100",
+      "fonTuru": "BIST100",
+      "fonTurGetiri": -0.040849
+    },
+    {
+      "fonKodu": "BIST30",
+      "fonUnvan": "BIST30",
+      "fonTuru": "BIST30",
+      "fonTurGetiri": -0.034907
+    },
+    {
+      "fonKodu": "EUR",
+      "fonUnvan": "EUR",
+      "fonTuru": "EUR",
+      "fonTurGetiri": 0.006788
+    },
+    {
+      "fonKodu": "HISSE SENEDI ŞEMSIYE FONU",
+      "fonUnvan": "HISSE SENEDI ŞEMSIYE FONU",
+      "fonTuru": "Hisse Senedi Şemsiye Fonu",
+      "fonTurGetiri": -0.0426
+    },
+    {
+      "fonKodu": "TI2",
+      "fonUnvan": "İŞ PORTFÖY HİSSE SENEDİ (TL) FONU (HİSSE SENEDİ YOĞUN FON)",
+      "fonTuru": "Hisse Senedi Şemsiye Fonu",
+      "fonTurGetiri": -0.039812
+    },
+    {
+      "fonKodu": "USD",
+      "fonUnvan": "USD",
+      "fonTuru": "USD",
+      "fonTurGetiri": 0.004223
+    }
+  ]
+}

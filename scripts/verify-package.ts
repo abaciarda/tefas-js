@@ -27,7 +27,7 @@ try {
 
   const entries = execFileSync('tar', ['-tf', archive], { encoding: 'utf8' })
     .split(/\r?\n/).filter((entry) => entry !== '' && !entry.endsWith('/'));
-  const modules = ['allocation', 'client', 'errors', 'fund-list', 'index', 'market', 'parser', 'periods', 'request', 'request-context', 'retry', 'search', 'snapshots', 'transport', 'types', 'validation'];
+  const modules = ['allocation', 'client', 'comparison', 'daily-history', 'errors', 'fund-list', 'fund-type', 'index', 'market', 'parser', 'periods', 'request', 'request-context', 'retry', 'search', 'snapshots', 'transport', 'types', 'validation'];
   const required = new Set([
     'package/package.json',
     'package/README.md',

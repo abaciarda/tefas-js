@@ -100,6 +100,37 @@ Bu üç alanda TEFAS'ın göndermediği değerler `null` olur. `0`, gerçekten s
 
 Veri yoksa `getSnapshot` için `null`, `getSnapshots` için boş dizi döner. Hafta sonu keşfinde görülen `Index 0 out of bounds for length 0` yanıtı da boş sonuç olarak işlenir. Diğer kaynak hataları bildirilir. Güncel günün verisi henüz yayımlanmamış olabilir. İki metot da `signal` seçeneğini ve istemcinin zaman aşımı/yeniden deneme ayarlarını kullanır.
 
+## Tarih aralığıyla günlük geçmiş
+
+```ts
+const history = await client.getDailyHistory("TI2", {
+  from: "2026-09-01",
+  to: "2026-10-10",
+  onProgress: ({ completed, total }) => {
+    console.log(`${completed}/${total}`);
+  },
+});
+```
+
+`getDailyHistory`, bir fonun iki tarih arasındaki günlük verisini `getSnapshot` ile aynı alanlarla (`FundSnapshot`) getirir. `from` ve `to` dahildir; aynı tarih tek gün sayılır. Aralık en fazla **1827 takvim günü** olabilir (`to − from + 1`, yaklaşık beş yıl). `kind` varsayılan olarak `YAT`'tır.
+
+Sonuç tarihe göre eskiden yeniye sıralanır. Hafta sonu, tatil veya yayımlanmamış günler için kayıt üretilmez; önceki fiyat taşınmaz, sıfır yazılmaz. Veri yoksa boş dizi döner.
+
+`getPriceHistory`'den farkı: `getPriceHistory`, `1y` gibi sabit bir dönem için yalnızca fiyat serisi döndürür. `getDailyHistory` ise istediğiniz tarih aralığında pay sayısı, yatırımcı sayısı ve portföy büyüklüğünü de verir.
+
+TEFAS'a aralık 28 günlük parçalar halinde sırayla sorulur; istekler paralel gönderilmez. İki gerçek istek denemesinin başlangıcı arasında en az `minIntervalMs` beklenir (varsayılan `10000`, `0`–`60000`). İlk istekten önce bekleme yoktur. Yeniden denemeler de bu aralığa dahildir; yeniden deneme beklemesi sırasında geçen süre aralıktan düşülür. Bu sınır yalnızca o çağrı için geçerlidir; diğer metotları yavaşlatmaz.
+
+Beş yıllık üst sınıra yakın bir aralık yaklaşık **66 istek** gerektirir ve varsayılan hızla yaklaşık **11 dakika** sürebilir. Bu kesin bir süre değildir; yanıt süreleri, yeniden denemeler ve bekleme aralıklarına göre değişir.
+
+İki ayrı süre sınırı vardır:
+
+- Metodun `timeoutMs` seçeneği bütün işlemin toplam süresidir; bekleme aralıkları ve yeniden denemeler dahildir. Varsayılanı `parça sayısı × (minIntervalMs + istemcinin timeoutMs değeri)`. Bu bir başarı garantisi değildir.
+- İstemcinin `timeoutMs` ayarı her parça için ayrı uygulanır ve o parçanın yeniden denemelerini de kapsar. Bir parçada yeniden deneme yapılacaksa, istemci zaman aşımının `minIntervalMs`'ten büyük olması gerekir; aksi halde yeniden deneme beklerken parça zaman aşımına uğrar.
+
+İki sınırdan biri aşılırsa `TIMEOUT`, `signal` ile iptal edilirse `ABORTED` hatası döner. Herhangi bir parça kalıcı olarak başarısız olursa metot hata verir; kısmi sonuç döndürülmez ve sonraki parçalar istenmez.
+
+`onProgress` her parça başarıyla işlendiğinde `{ completed, total }` ile çağrılır. `completed` 1'den başlar, `total` parça sayısıdır. Boş parçalar da sayılır; başarısız denemeler sayılmaz. Callback hata fırlatırsa aynı hata dışarı iletilir ve istekler durur.
+
 ## Varlık dağılımı
 
 ```ts
@@ -112,6 +143,34 @@ console.log(allocation?.weights.reverseRepo);
 `getAllocation`, seçilen tarihteki fon dağılımını getirir. `kind` ve `signal` seçenekleri günlük sorgularla aynıdır. Sunucu filtresi kullanılır; her çağrıda tüm fonların dağılımı indirilmez. Boş sonuçta `null` döner.
 
 `weights` içindeki değerler yüzdedir: `92.28`, `%92,28` anlamına gelir. Eksik veya `null` kalemler nesneye eklenmez, sıfır değerler korunur. Kalemler `0`–`100` arasında olmalı; toplamın 100'den en fazla 0,5 puan sapmasına izin verilir. Çelişen kayıtlar, farklı fon kodu veya farklı tarih hata verir.
+
+## Getiri karşılaştırması
+
+```ts
+const comparison = await client.getComparison("TI2", { period: "1y" });
+
+console.log(comparison.fundReturn);
+console.log(comparison.benchmarks.bist100);
+console.log(comparison.benchmarks.inflation);
+```
+
+`getComparison`, fonun seçilen dönemdeki getirisini karşılaştırma ölçütleriyle birlikte getirir. `period`, fiyat geçmişindeki dönemlerle aynıdır: `1w`, `1m`, `3m`, `6m`, `ytd`, `1y`, `3y` veya `5y`.
+
+Getiriler yüzde değil **orandır**: `0.1166`, `%11,66`; `-0.0398`, `-%3,98` anlamına gelir. Fon ve karşılaştırmalar aynı birimi kullanır. Negatif ve sıfır getiriler korunur.
+
+`benchmarks` şu alanları içerebilir: `gold`, `bist100`, `bist30`, `eur`, `usd`, `depositRate` (mevduat faizi), `inflation` (TÜFE) ve `umbrellaCategory`. `umbrellaCategory`, fonun kendi şemsiye kategorisinin ortalamasıdır; örneğin TI2 için Hisse Senedi Şemsiye Fonu. Bu yüzden fondan fona farklı bir kategoriyi temsil eder.
+
+TEFAS her dönem için her karşılaştırmayı döndürmez; örneğin haftalık sorguda mevduat ve enflasyon yoktur. Eksik karşılaştırmalar nesneye eklenmez. Fonun kendi getirisi yoksa `fundReturn` `null` olur. Tanınmayan yeni karşılaştırmalar yok sayılır.
+
+## Fon tipi
+
+```ts
+const type = await client.getFundType("AE1");
+
+console.log(type); // "pension"
+```
+
+`getFundType`, fonun yatırım fonu (`"investment"`) mi yoksa emeklilik fonu (`"pension"`) mu olduğunu döndürür. Fon bulunamazsa `null` döner. Bu değer, günlük sorgulardaki `kind` seçeneğinden (`YAT`, `EMK` vb.) farklıdır: `kind` sizin seçtiğiniz sorgu kategorisidir, `getFundType` ise TEFAS'ın fon için bildirdiği tiptir.
 
 ## Sıralama ve piyasa özeti
 
@@ -234,13 +293,17 @@ Bu komut tek bir istek gönderir. Normal testlere veya CI'a dahil değildir. CI'
 
 ## Projenin durumu
 
-Fon listesi, arama, fiyat sorgusu, günlük fon verileri ve varlık dağılımı mevcut. Günlük veriler üzerinde sıralama ve özet de yapılabilir. Tarih aralığıyla günlük geçmiş ve önbellekleme henüz yok. API, sonraki 0.x sürümlerinde değişebilir.
+Fon listesi, arama, fiyat sorgusu, günlük fon verileri, tarih aralığıyla günlük geçmiş, varlık dağılımı, getiri karşılaştırması ve fon tipi mevcut. Günlük veriler üzerinde sıralama ve özet de yapılabilir. Önbellekleme henüz yok. API, sonraki 0.x sürümlerinde değişebilir.
 
 Paket ESM olarak sunulur. CommonJS ve tarayıcı desteği yoktur. Kurulumda veya import sırasında istek gönderilmez. İstemci metotları ağ isteği yapar; `searchFunds`, `topFunds` ve `summarizeMarket` yapmaz.
 
 ## Sürüm notları
 
 ### 0.2.0 — hazırlanıyor
+
+`getDailyHistory` ile tarih aralığıyla, hız sınırlı günlük geçmiş eklendi.
+
+`getComparison` ile getiri karşılaştırması, `getFundType` ile fon tipi eklendi.
 
 `getAllocation` ile fonun varlık dağılımı eklendi.
 

@@ -59,6 +59,47 @@ export interface MarketSummary {
   readonly totalInvestorCount: number;
 }
 
+export interface GetDailyHistoryOptions {
+  readonly from: string;
+  readonly to: string;
+  readonly kind?: FundKind;
+  readonly minIntervalMs?: number;
+  readonly timeoutMs?: number;
+  readonly onProgress?: (progress: {
+    readonly completed: number;
+    readonly total: number;
+  }) => void;
+  readonly signal?: AbortSignal;
+}
+
+export type BenchmarkKey =
+  | "gold"
+  | "bist100"
+  | "bist30"
+  | "eur"
+  | "usd"
+  | "depositRate"
+  | "umbrellaCategory"
+  | "inflation";
+
+export interface FundComparison {
+  readonly fundCode: string;
+  readonly period: HistoryPeriod;
+  readonly fundReturn: number | null;
+  readonly benchmarks: Readonly<Partial<Record<BenchmarkKey, number>>>;
+}
+
+export interface GetComparisonOptions {
+  readonly period: HistoryPeriod;
+  readonly signal?: AbortSignal;
+}
+
+export type FundType = "investment" | "pension";
+
+export interface GetFundTypeOptions {
+  readonly signal?: AbortSignal;
+}
+
 export interface FundPrice {
   readonly date: string;
   readonly price: number;

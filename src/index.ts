@@ -7,11 +7,17 @@ export type { TefasErrorCode, TefasErrorOptions } from "./errors.js";
 
 export type {
   AllocationKey,
+  BenchmarkKey,
   FundAllocation,
+  FundComparison,
   FundKind,
   FundListing,
   FundPrice,
   FundSnapshot,
+  FundType,
+  GetComparisonOptions,
+  GetDailyHistoryOptions,
+  GetFundTypeOptions,
   GetPriceHistoryOptions,
   GetSnapshotsOptions,
   HistoryPeriod,

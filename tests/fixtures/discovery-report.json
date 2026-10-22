@@ -137,7 +137,9 @@
   },
   {
     "name": "dagilimSiraliGetirT",
-    "ignoredMetadataFields": { "bilFiyat": "Not a percentage; excluded from allocation weights and totals." },
+    "ignoredMetadataFields": {
+      "bilFiyat": "Not a percentage; excluded from allocation weights and totals."
+    },
     "status": 200,
     "contentType": "application/json;charset=UTF-8",
     "topLevel": {
@@ -212,25 +214,6 @@
     "sourceMessage": null
   },
   {
-    "name": "fonProfilDtyGetir",
-    "status": 200,
-    "contentType": "application/json;charset=UTF-8",
-    "topLevel": {
-      "errorCode": "null",
-      "errorMessage": "null",
-      "resultList": "array"
-    },
-    "rowCount": 9,
-    "firstRow": {
-      "fonKodu": "string",
-      "fonUnvan": "string",
-      "fonTuru": "string",
-      "fonTurGetiri": "number"
-    },
-    "sourceCode": null,
-    "sourceMessage": null
-  },
-  {
     "name": "fonTipiGetir",
     "status": 200,
     "contentType": "application/json;charset=UTF-8",
@@ -270,7 +253,9 @@
   },
   {
     "name": "dagilimSiraliGetirT-both-codes",
-    "ignoredMetadataFields": { "bilFiyat": "Not a percentage; excluded from allocation weights and totals." },
+    "ignoredMetadataFields": {
+      "bilFiyat": "Not a percentage; excluded from allocation weights and totals."
+    },
     "status": 200,
     "contentType": "application/json;charset=UTF-8",
     "topLevel": {
@@ -348,7 +333,9 @@
   },
   {
     "name": "dagilimSiraliGetirT-fonKod-only",
-    "ignoredMetadataFields": { "bilFiyat": "Not a percentage; excluded from allocation weights and totals." },
+    "ignoredMetadataFields": {
+      "bilFiyat": "Not a percentage; excluded from allocation weights and totals."
+    },
     "status": 200,
     "contentType": "application/json;charset=UTF-8",
     "topLevel": {
@@ -426,7 +413,9 @@
   },
   {
     "name": "dagilimSiraliGetirT-search",
-    "ignoredMetadataFields": { "bilFiyat": "Not a percentage; excluded from allocation weights and totals." },
+    "ignoredMetadataFields": {
+      "bilFiyat": "Not a percentage; excluded from allocation weights and totals."
+    },
     "status": 200,
     "contentType": "application/json;charset=UTF-8",
     "topLevel": {
@@ -519,5 +508,118 @@
     "sourceMessage": "Index 0 out of bounds for length 0",
     "matchingRows": null,
     "exclusivelyRequestedFund": false
+  },
+  {
+    "name": "fonProfilDtyGetir",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "resultList": "array"
+    },
+    "rowCount": 9,
+    "firstRow": {
+      "fonKodu": "string",
+      "fonUnvan": "string",
+      "fonTuru": "string",
+      "fonTurGetiri": "number"
+    },
+    "sourceCode": null,
+    "sourceMessage": null
+  },
+  {
+    "name": "fonProfilDtyGetir-week",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "resultList": "array"
+    },
+    "rowCount": 7,
+    "firstRow": {
+      "fonKodu": "string",
+      "fonUnvan": "string",
+      "fonTuru": "string",
+      "fonTurGetiri": "number"
+    },
+    "sourceCode": null,
+    "sourceMessage": null
+  },
+  {
+    "name": "fonFiyatBilgiGetir-week-full",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "resultList": "array"
+    },
+    "rowCount": 6,
+    "firstRow": {
+      "fonKodu": "string",
+      "fonUnvan": "string",
+      "kategoriDerece": "number",
+      "kategoriFonSay": "number",
+      "tarih": "string",
+      "fiyat": "number"
+    },
+    "sourceCode": null,
+    "sourceMessage": null
+  },
+  {
+    "name": "fonTipiGetir-pension",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "fonTipi": "string"
+    },
+    "rowCount": null,
+    "firstRow": null,
+    "sourceCode": null,
+    "sourceMessage": null
+  },
+  {
+    "name": "fonTipiGetir-missing",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "string",
+      "fonTipi": "null"
+    },
+    "rowCount": null,
+    "firstRow": null,
+    "sourceCode": null,
+    "sourceMessage": "Index 0 out of bounds for length 0"
+  },
+  {
+    "name": "fonGnlBlgSiraliGetir-range",
+    "status": 200,
+    "contentType": "application/json;charset=UTF-8",
+    "topLevel": {
+      "errorCode": "null",
+      "errorMessage": "null",
+      "resultList": "array",
+      "toplamSayi": "number",
+      "toplamSayfa": "number"
+    },
+    "rowCount": 20,
+    "firstRow": {
+      "fonKodu": "string",
+      "fonUnvan": "string",
+      "tarih": "string",
+      "fiyat": "number",
+      "tedPaySayisi": "number",
+      "kisiSayisi": "number",
+      "portfoyBuyukluk": "number",
+      "borsaBultenFiyat": "null",
+      "rn": "number"
+    },
+    "sourceCode": null,
+    "sourceMessage": null
   }
 ]

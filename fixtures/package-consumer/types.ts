@@ -2,6 +2,12 @@ import { TefasClient, TefasError, searchFunds, topFunds, summarizeMarket } from 
 import type {
   GetPriceHistoryOptions,
   AllocationKey,
+  BenchmarkKey,
+  FundComparison,
+  FundType,
+  GetComparisonOptions,
+  GetDailyHistoryOptions,
+  GetFundTypeOptions,
   FundAllocation,
   FundListing,
   FundSnapshot,
@@ -151,3 +157,93 @@ function checkAllocation(allocation: FundAllocation) {
   allocation.date = '2026-10-21';
 }
 void checkAllocation;
+
+const comparisonOptions: GetComparisonOptions = { period: '1w', signal: new AbortController().signal };
+const comparisonResult: Promise<FundComparison> = client.getComparison('TI2', comparisonOptions);
+const fundTypeOptions: GetFundTypeOptions = { signal: new AbortController().signal };
+const fundTypeResult: Promise<FundType | null> = client.getFundType('TI2', fundTypeOptions);
+const defaultFundType: Promise<'investment' | 'pension' | null> = client.getFundType('AE1');
+const benchmarkKey: BenchmarkKey = 'umbrellaCategory';
+void comparisonResult;
+void fundTypeResult;
+void defaultFundType;
+void benchmarkKey;
+
+// @ts-expect-error Comparisons require a period.
+client.getComparison('TI2', {});
+// @ts-expect-error Comparisons only accept supported named periods.
+client.getComparison('TI2', { period: '12m' });
+// @ts-expect-error Comparisons do not accept month counts.
+client.getComparison('TI2', { periodMonths: 12 });
+// @ts-expect-error Comparisons do not accept a fund kind.
+client.getComparison('TI2', { period: '1y', kind: 'YAT' });
+// @ts-expect-error Fund type cancellation requires an AbortSignal.
+client.getFundType('TI2', { signal: {} });
+// @ts-expect-error Fund type options reject unknown keys.
+client.getFundType('TI2', { kind: 'YAT' });
+// @ts-expect-error Fund kinds are not fund types.
+const wrongType: FundType = 'YAT';
+void wrongType;
+// @ts-expect-error Unknown benchmarks are not exposed.
+const wrongBenchmark: BenchmarkKey = 'hedgeFundUmbrella';
+void wrongBenchmark;
+
+function checkComparison(comparison: FundComparison) {
+  const fundReturn: number | null = comparison.fundReturn;
+  const gold: number | undefined = comparison.benchmarks.gold;
+  void fundReturn;
+  void gold;
+  // @ts-expect-error Comparison returns are readonly.
+  comparison.fundReturn = 0;
+  // @ts-expect-error Benchmark returns are readonly.
+  comparison.benchmarks.gold = 0;
+  // @ts-expect-error The benchmark map is readonly.
+  comparison.benchmarks = {};
+  // @ts-expect-error Comparison periods are readonly.
+  comparison.period = '1y';
+}
+void checkComparison;
+
+type DailyHistoryProgress = Parameters<NonNullable<GetDailyHistoryOptions['onProgress']>>[0];
+const dailyOptions: GetDailyHistoryOptions = {
+  from: '2026-09-01',
+  to: '2026-10-10',
+  kind: 'EMK',
+  minIntervalMs: 0,
+  timeoutMs: 60_000,
+  onProgress: (progress: DailyHistoryProgress) => {
+    const completed: number = progress.completed;
+    const total: number = progress.total;
+    void completed;
+    void total;
+    // @ts-expect-error Progress values are readonly.
+    progress.completed = 0;
+  },
+  signal: new AbortController().signal,
+};
+const dailyResult: Promise<readonly FundSnapshot[]> = client.getDailyHistory('TI2', dailyOptions);
+void dailyResult;
+
+// @ts-expect-error Daily history needs both range ends.
+client.getDailyHistory('TI2', { from: '2026-09-01' });
+// @ts-expect-error Daily history only accepts supported fund kinds.
+client.getDailyHistory('TI2', { from: '2026-09-01', to: '2026-10-10', kind: 'F' });
+// @ts-expect-error Daily history dates must be strings.
+client.getDailyHistory('TI2', { from: new Date(), to: '2026-10-10' });
+// @ts-expect-error The request interval must be numeric.
+client.getDailyHistory('TI2', { from: '2026-09-01', to: '2026-10-10', minIntervalMs: '0' });
+// @ts-expect-error The progress callback must be a function.
+client.getDailyHistory('TI2', { from: '2026-09-01', to: '2026-10-10', onProgress: {} });
+// @ts-expect-error Daily history rejects unknown keys.
+client.getDailyHistory('TI2', { from: '2026-09-01', to: '2026-10-10', period: '1y' });
+
+function checkDailyHistory(history: readonly FundSnapshot[]) {
+  // @ts-expect-error Daily history arrays are readonly.
+  history.push(history[0]!);
+  const first = history[0];
+  if (first) {
+    // @ts-expect-error Daily snapshot fields are readonly.
+    first.date = '2026-09-02';
+  }
+}
+void checkDailyHistory;

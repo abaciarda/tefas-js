@@ -61,36 +61,51 @@ export function sameSnapshot(left: FundSnapshot, right: FundSnapshot): boolean {
     left.investorCount === right.investorCount && left.portfolioSize === right.portfolioSize;
 }
 
+export function isEmptyDailyResponse(payload: unknown): boolean {
+  return isRecord(payload) && payload.errorCode === null && payload.errorMessage === "Index 0 out of bounds for length 0" &&
+    payload.resultList === null;
+}
+
+export function readSnapshotRows(payload: unknown): unknown[] {
+  const response = validateEnvelope(payload);
+  if (!Array.isArray(response.resultList)) invalidResponse("Missing or invalid snapshot resultList.");
+  return response.resultList;
+}
+
+export function readSnapshotRow(
+  row: unknown,
+  kind: FundKind,
+  fundCode: string | undefined,
+  isExpectedDate: (date: string) => boolean,
+): FundSnapshot {
+  if (!isRecord(row) || !isFundCode(row.fonKodu) || !isNonEmptyString(row.fonUnvan)) {
+    invalidResponse("Invalid snapshot fund information.");
+  }
+  if (fundCode !== undefined && row.fonKodu !== fundCode) invalidResponse("The snapshot contains a different fund code.");
+  if (!isDateString(row.tarih) || !isExpectedDate(row.tarih)) invalidResponse("The snapshot contains an invalid or unexpected date.");
+  if (!isNonNegativeNumber(row.fiyat)) invalidResponse("Invalid snapshot price.");
+  return {
+    fundCode: row.fonKodu,
+    fundName: row.fonUnvan.trim(),
+    kind,
+    date: row.tarih,
+    price: row.fiyat,
+    sharesOutstanding: optionalNumber(row.tedPaySayisi),
+    investorCount: optionalNumber(row.kisiSayisi),
+    portfolioSize: optionalNumber(row.portfoyBuyukluk),
+  };
+}
+
 export function parseSnapshots(
   payload: unknown,
   kind: FundKind,
   date: string,
   fundCode?: string,
 ): readonly FundSnapshot[] {
-  if (isRecord(payload) && payload.errorCode === null && payload.errorMessage === "Index 0 out of bounds for length 0" && payload.resultList === null) {
-    return [];
-  }
-  const response = validateEnvelope(payload);
-  if (!Array.isArray(response.resultList)) invalidResponse("Missing or invalid snapshot resultList.");
-  const rows: unknown[] = response.resultList;
+  if (isEmptyDailyResponse(payload)) return [];
   const byCode = new Map<string, FundSnapshot>();
-  for (const row of rows) {
-    if (!isRecord(row) || !isFundCode(row.fonKodu) || !isNonEmptyString(row.fonUnvan)) {
-      invalidResponse("Invalid snapshot fund information.");
-    }
-    if (fundCode !== undefined && row.fonKodu !== fundCode) invalidResponse("The snapshot contains a different fund code.");
-    if (!isDateString(row.tarih) || row.tarih !== date) invalidResponse("The snapshot contains an invalid or unexpected date.");
-    if (!isNonNegativeNumber(row.fiyat)) invalidResponse("Invalid snapshot price.");
-    const snapshot: FundSnapshot = {
-      fundCode: row.fonKodu,
-      fundName: row.fonUnvan.trim(),
-      kind,
-      date: row.tarih,
-      price: row.fiyat,
-      sharesOutstanding: optionalNumber(row.tedPaySayisi),
-      investorCount: optionalNumber(row.kisiSayisi),
-      portfolioSize: optionalNumber(row.portfoyBuyukluk),
-    };
+  for (const row of readSnapshotRows(payload)) {
+    const snapshot = readSnapshotRow(row, kind, fundCode, (rowDate) => rowDate === date);
     const previous = byCode.get(snapshot.fundCode);
     if (previous !== undefined && !sameSnapshot(previous, snapshot)) {
       invalidResponse("The response contains conflicting snapshots for one fund.");

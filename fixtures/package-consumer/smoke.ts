@@ -24,6 +24,16 @@ globalThis.fetch = async (url, init) => {
   if (url === 'https://www.tefas.gov.tr/api/funds/fonGnlBlgSiraliGetir') {
     const body = JSON.parse(init.body) as { fonKodu: string | null; fonTipi: string; basTarih: string; bitTarih: string };
     assert.equal(body.fonTipi, 'YAT');
+    if (body.basTarih !== body.bitTarih) {
+      assert.equal(body.fonKodu, 'TI2');
+      const ranges: Record<string, string> = { '20260901': '20260928', '20260929': '20261010' };
+      assert.equal(ranges[body.basTarih], body.bitTarih);
+      const date = `${body.basTarih.slice(0, 4)}-${body.basTarih.slice(4, 6)}-${body.basTarih.slice(6)}`;
+      return Response.json({
+        errorCode: null, errorMessage: null,
+        resultList: [{ fonKodu: 'TI2', fonUnvan: 'İŞ PORTFÖY', tarih: date, fiyat: 2, tedPaySayisi: 100, kisiSayisi: 10, portfoyBuyukluk: 200 }],
+      });
+    }
     assert.equal(body.basTarih, '20261020');
     assert.equal(body.bitTarih, '20261020');
     assert.ok(body.fonKodu === null || body.fonKodu === 'TI2');
@@ -32,6 +42,21 @@ globalThis.fetch = async (url, init) => {
       { fonKodu: 'AAA', fonUnvan: 'Other Fund', tarih: '2026-10-20', fiyat: 1, tedPaySayisi: null, kisiSayisi: 20, portfoyBuyukluk: 100 },
     ];
     return Response.json({ errorCode: null, errorMessage: null, resultList: body.fonKodu === null ? rows : rows.slice(0, 1) });
+  }
+  if (url === 'https://www.tefas.gov.tr/api/funds/fonProfilDtyGetir') {
+    assert.deepEqual(JSON.parse(init.body), { fonKodu: 'TI2', dil: 'TR', periyod: 13 });
+    return Response.json({
+      errorCode: null, errorMessage: null,
+      resultList: [
+        { fonKodu: 'ALTIN', fonUnvan: 'ALTIN', fonTuru: 'ALTIN', fonTurGetiri: 0.001 },
+        { fonKodu: 'TI2', fonUnvan: 'İŞ PORTFÖY', fonTuru: 'Hisse Senedi Şemsiye Fonu', fonTurGetiri: -0.04 },
+        { fonKodu: 'HISSE SENEDI ŞEMSIYE FONU', fonUnvan: 'HISSE SENEDI ŞEMSIYE FONU', fonTuru: 'Hisse Senedi Şemsiye Fonu', fonTurGetiri: -0.0426 },
+      ],
+    });
+  }
+  if (url === 'https://www.tefas.gov.tr/api/funds/fonTipiGetir') {
+    const body = JSON.parse(init.body) as { fonKodu: string };
+    return Response.json({ errorCode: null, errorMessage: null, fonTipi: body.fonKodu === 'AE1' ? 'M' : 'F' });
   }
   if (url === 'https://www.tefas.gov.tr/api/statistics/tefas/getFplFonList') {
     assert.deepEqual(JSON.parse(init.body), {});
@@ -106,6 +131,31 @@ try {
     fundCode: 'TI2', fundName: 'İŞ PORTFÖY', kind: 'YAT', date: '2026-10-20', weights: { stock: 90, reverseRepo: 10 },
   });
   assert.equal(calls, 7);
+  const comparison = await client.getComparison(' ti2 ', { period: '1w' });
+  assert.deepEqual(comparison, {
+    fundCode: 'TI2', period: '1w', fundReturn: -0.04, benchmarks: { gold: 0.001, umbrellaCategory: -0.0426 },
+  });
+  assert.equal(calls, 8);
+  assert.equal(await client.getFundType('TI2'), 'investment');
+  assert.equal(await client.getFundType('AE1', { signal: new AbortController().signal }), 'pension');
+  assert.equal(calls, 10);
+  await assert.rejects(
+    () => client.getComparison('TI2', { period: '2y' as '1y' }),
+    (error) => error instanceof TefasError && error.code === 'INVALID_ARGUMENT',
+  );
+  assert.equal(calls, 10);
+  const progress: { completed: number; total: number }[] = [];
+  const daily = await client.getDailyHistory(' ti2 ', {
+    from: '2026-09-01', to: '2026-10-10', minIntervalMs: 0, onProgress: (entry) => progress.push({ ...entry }),
+  });
+  assert.deepEqual(daily.map((entry) => entry.date), ['2026-09-01', '2026-09-29']);
+  assert.deepEqual(progress, [{ completed: 1, total: 2 }, { completed: 2, total: 2 }]);
+  assert.equal(calls, 12);
+  await assert.rejects(
+    () => client.getDailyHistory('TI2', { from: '2021-01-01', to: '2026-01-02' }),
+    (error) => error instanceof TefasError && error.code === 'INVALID_ARGUMENT',
+  );
+  assert.equal(calls, 12);
   console.log('Consumer JavaScript OK');
 } finally {
   globalThis.fetch = originalFetch;

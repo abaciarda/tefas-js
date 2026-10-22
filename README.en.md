@@ -87,6 +87,37 @@ Each snapshot includes the fund code, name, kind, date, price, `sharesOutstandin
 
 No data produces `null` for `getSnapshot` and an empty array for `getSnapshots`. The exact `Index 0 out of bounds for length 0` empty-day response observed during discovery is handled the same way. Other source errors are reported. Data for the current day may not have been published yet. Both methods accept `signal` and use the client's timeout and retry settings.
 
+## Daily history over a date range
+
+```ts
+const history = await client.getDailyHistory("TI2", {
+  from: "2026-09-01",
+  to: "2026-10-10",
+  onProgress: ({ completed, total }) => {
+    console.log(`${completed}/${total}`);
+  },
+});
+```
+
+`getDailyHistory` returns a fund's daily data between two dates, using the same `FundSnapshot` fields as `getSnapshot`. Both `from` and `to` are inclusive, and equal dates count as one day. Ranges may cover at most **1827 calendar days** (`to − from + 1`, about five years). `kind` defaults to `YAT`.
+
+Results are sorted from oldest to newest. Weekends, holidays, and unpublished days are skipped: no rows are synthesized, prices are not carried forward, and zeros are not filled in. A range with no data returns an empty array.
+
+Unlike `getPriceHistory`, which returns only prices for a fixed period such as `1y`, `getDailyHistory` covers any date range and includes shares outstanding, investor count, and portfolio size.
+
+The range is fetched in sequential 28-day chunks, never in parallel. At least `minIntervalMs` (default `10000`, range `0`–`60000`) passes between the starts of two actual request attempts. The first request is not delayed. Retries count toward the interval, and time already spent waiting to retry is subtracted from it. The limit applies to that call only and does not slow down other methods.
+
+A range near the five-year limit needs about **66 requests** and can take about **11 minutes** at the default pace. This is an estimate, not a fixed duration; it depends on response times, retries, and waiting intervals.
+
+There are two separate time limits:
+
+- The method's `timeoutMs` option limits the whole operation, including intervals and retries. It defaults to `chunk count × (minIntervalMs + the client's timeoutMs)`. This is not a guarantee of success.
+- The client's `timeoutMs` applies to each chunk separately, including that chunk's retries. If a chunk needs to retry, the client timeout must be larger than `minIntervalMs`; otherwise the chunk times out while it waits to retry.
+
+Exceeding either limit rejects with `TIMEOUT`; cancelling through `signal` rejects with `ABORTED`. If any chunk fails permanently, the method rejects without a partial result and later chunks are not requested.
+
+`onProgress` is called with `{ completed, total }` after each chunk is processed successfully. `completed` starts at 1, and `total` is the chunk count. Empty chunks count; failed attempts do not. If the callback throws, the same error is rethrown and no further requests are sent.
+
 ## Asset allocation
 
 ```ts
@@ -99,6 +130,34 @@ console.log(allocation?.weights.reverseRepo);
 `getAllocation` returns the fund's allocation for the requested date. It accepts the same `kind` and `signal` options as daily snapshots. Filtering happens on the server; calls do not download allocations for all funds. An empty result returns `null`.
 
 `weights` contains percentages: `92.28` means 92.28%. Missing or null entries are omitted, and zero is preserved. Values must be between 0 and 100; totals may differ from 100 by at most 0.5 percentage points. Conflicting rows, unexpected fund codes, and unexpected dates are rejected.
+
+## Return comparison
+
+```ts
+const comparison = await client.getComparison("TI2", { period: "1y" });
+
+console.log(comparison.fundReturn);
+console.log(comparison.benchmarks.bist100);
+console.log(comparison.benchmarks.inflation);
+```
+
+`getComparison` returns the fund's return for the selected period together with benchmark returns. `period` accepts the same values as price history: `1w`, `1m`, `3m`, `6m`, `ytd`, `1y`, `3y`, or `5y`.
+
+Returns are **ratios**, not percentages: `0.1166` means 11.66% and `-0.0398` means -3.98%. The fund and its benchmarks use the same unit. Negative and zero returns are preserved.
+
+`benchmarks` may contain `gold`, `bist100`, `bist30`, `eur`, `usd`, `depositRate`, `inflation` (Turkish CPI), and `umbrellaCategory`. `umbrellaCategory` is the average of the fund's own umbrella category, such as the equity umbrella category for TI2, so it represents a different category for different funds.
+
+TEFAS does not return every benchmark for every period; weekly queries, for example, omit deposit rates and inflation. Missing benchmarks are left out of the object. `fundReturn` is `null` when the fund's own row is missing. Unrecognized new benchmarks are ignored.
+
+## Fund type
+
+```ts
+const type = await client.getFundType("AE1");
+
+console.log(type); // "pension"
+```
+
+`getFundType` returns whether a fund is an investment fund (`"investment"`) or a pension fund (`"pension"`), or `null` when the fund is not found. This differs from the `kind` option of daily queries (`YAT`, `EMK`, and so on): `kind` is the query category you choose, while `getFundType` reports the type TEFAS assigns to the fund.
 
 ## Fund ranking and market summary
 
@@ -191,13 +250,17 @@ The client does not imitate a browser or try to bypass access controls. If TEFAS
 
 ## Scope
 
-Fund listing, search, price history, daily snapshots, and asset allocation are available, along with local ranking and summary helpers. Daily history over date ranges and caching are future work. CommonJS and browser compatibility are not claimed.
+Fund listing, search, price history, daily snapshots, daily history over date ranges, asset allocation, return comparisons, and fund types are available, along with local ranking and summary helpers. Caching is future work. CommonJS and browser compatibility are not claimed.
 
 No requests run during package installation or import. Client methods send requests; `searchFunds`, `topFunds`, and `summarizeMarket` run locally.
 
 ## Release notes
 
 ### 0.2.0 — in development
+
+Added `getDailyHistory` for rate-limited daily history over date ranges.
+
+Added `getComparison` for return comparisons and `getFundType` for fund types.
 
 Added `getAllocation` for fund asset allocation.
 

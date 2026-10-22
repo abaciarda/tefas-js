@@ -11,11 +11,11 @@ const fixtureDirectory = join(root, 'tests', 'fixtures');
 const date = process.argv[2] ?? '20261020';
 const selected = process.argv.slice(3);
 
-function dailyBody(fundCode: string | null, kind = 'YAT', day = date): JsonRecord {
+function dailyBody(fundCode: string | null, kind = 'YAT', day = date, to = day): JsonRecord {
   return {
     fonTipi: kind, fonKodu: fundCode, aramaMetni: null, fonTurKod: null,
     fonGrubu: null, sfonTurKod: null, fonTurAciklama: null, kurucuKod: null,
-    basTarih: day, bitTarih: day, basSira: 1, bitSira: 100000,
+    basTarih: day, bitTarih: to, basSira: 1, bitSira: 100000,
     dil: 'TR', sFonTurKod: '', fonKod: '', fonGrup: '', fonUnvanTip: '',
   };
 }
@@ -48,13 +48,18 @@ const probes: readonly Probe[] = [
   { name: 'fonGnlBlgSiraliGetir-pension', endpoint: '/api/funds/fonGnlBlgSiraliGetir', body: dailyBody('AE1', 'EMK') },
   { name: 'fonGnlBlgSiraliGetir-all', endpoint: '/api/funds/fonGnlBlgSiraliGetir', body: dailyBody(null), sampleSize: 5 },
   { name: 'fonGnlBlgSiraliGetir-weekend', endpoint: '/api/funds/fonGnlBlgSiraliGetir', body: dailyBody('TI2', 'YAT', '20261018') },
+  { name: 'fonGnlBlgSiraliGetir-range', endpoint: '/api/funds/fonGnlBlgSiraliGetir', body: dailyBody('TI2', 'YAT', '20260901', '20260928'), sampleSize: 50 },
   { name: 'dagilimSiraliGetirT', endpoint: '/api/funds/dagilimSiraliGetirT', body: dailyBody('TI2') },
   { name: 'dagilimSiraliGetirT-both-codes', endpoint: '/api/funds/dagilimSiraliGetirT', body: { ...dailyBody('TI2'), fonKod: 'TI2' } },
   { name: 'dagilimSiraliGetirT-weekend', endpoint: '/api/funds/dagilimSiraliGetirT', body: { ...dailyBody('TI2', 'YAT', '20261018'), fonKod: 'TI2' } },
   { name: 'dagilimSiraliGetirT-fonKod-only', endpoint: '/api/funds/dagilimSiraliGetirT', body: { ...dailyBody(null), fonKod: 'TI2' } },
   { name: 'dagilimSiraliGetirT-search', endpoint: '/api/funds/dagilimSiraliGetirT', body: { ...dailyBody('TI2'), aramaMetni: 'TI2' } },
-  { name: 'fonProfilDtyGetir', endpoint: '/api/funds/fonProfilDtyGetir', body: { fonKodu: 'TI2', dil: 'TR', periyod: 12 } },
+  { name: 'fonProfilDtyGetir', endpoint: '/api/funds/fonProfilDtyGetir', body: { fonKodu: 'TI2', dil: 'TR', periyod: 12 }, sampleSize: 50 },
+  { name: 'fonProfilDtyGetir-week', endpoint: '/api/funds/fonProfilDtyGetir', body: { fonKodu: 'TI2', dil: 'TR', periyod: 13 }, sampleSize: 50 },
+  { name: 'fonFiyatBilgiGetir-week-full', endpoint: '/api/funds/fonFiyatBilgiGetir', body: { fonKodu: 'TI2', dil: 'TR', periyod: 13 }, sampleSize: 50 },
   { name: 'fonTipiGetir', endpoint: '/api/funds/fonTipiGetir', body: { fonKodu: 'TI2' } },
+  { name: 'fonTipiGetir-pension', endpoint: '/api/funds/fonTipiGetir', body: { fonKodu: 'AE1' } },
+  { name: 'fonTipiGetir-missing', endpoint: '/api/funds/fonTipiGetir', body: { fonKodu: 'ZZZ' } },
 ];
 
 mkdirSync(fixtureDirectory, { recursive: true });
