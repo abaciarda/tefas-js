@@ -1,6 +1,7 @@
-import { TefasClient, TefasError } from 'tefas-js';
+import { TefasClient, TefasError, searchFunds } from 'tefas-js';
 import type {
   GetPriceHistoryOptions,
+  FundListing,
   HistoryPeriod,
   HistoryPeriodMonths,
   PriceHistory,
@@ -24,6 +25,23 @@ const error: Error = new TefasError(code, 'Example failure', { cause: new Error(
 void result;
 void namedResult;
 void error;
+const listings: Promise<readonly FundListing[]> = client.listFunds({ signal: new AbortController().signal });
+const extended = [{ fundCode: 'TI2', fundName: 'İŞ PORTFÖY', price: 1, kind: 'YAT' as const }];
+const found = searchFunds(extended, 'is');
+const price: number | undefined = found[0]?.price;
+const kind: 'YAT' | undefined = found[0]?.kind;
+void listings;
+void price;
+void kind;
+
+// @ts-expect-error Listing rejects unknown options.
+client.listFunds({ typo: true });
+// @ts-expect-error Listing cancellation requires an AbortSignal.
+client.listFunds({ signal: {} });
+// @ts-expect-error Search queries must be strings.
+searchFunds([], 42);
+// @ts-expect-error Search entries must include the fund name.
+searchFunds([{ fundCode: 'TI2' }], 'TI2');
 
 // @ts-expect-error Unsupported periods must be rejected.
 client.getPriceHistory('TI2', { periodMonths: 2 });
@@ -52,3 +70,18 @@ function checkReadonly(history: PriceHistory) {
   history.prices.push({ date: '2026-10-20', price: 2 });
 }
 void checkReadonly;
+
+function checkListings(funds: readonly FundListing[]) {
+  // @ts-expect-error Listing arrays are readonly.
+  funds.push({ fundCode: 'TI2', fundName: 'İŞ PORTFÖY', founderCode: null, founderName: null });
+  const first = funds[0];
+  if (first) {
+    const founder: string | null = first.founderName;
+    void founder;
+    // @ts-expect-error Founder fields are readonly.
+    first.founderName = 'Other';
+  }
+  // @ts-expect-error Search results are readonly.
+  found.push(extended[0]!);
+}
+void checkListings;

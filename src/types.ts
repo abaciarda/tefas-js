@@ -4,6 +4,13 @@ export type HistoryPeriod = "1w" | "1m" | "3m" | "6m" | "ytd" | "1y" | "3y" | "5
 
 export type FundKind = "YAT" | "EMK" | "BYF" | "GYF" | "GSYF";
 
+export interface FundListing {
+  readonly fundCode: string;
+  readonly fundName: string;
+  readonly founderCode: string | null;
+  readonly founderName: string | null;
+}
+
 export interface FundPrice {
   readonly date: string;
   readonly price: number;

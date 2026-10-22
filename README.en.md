@@ -52,6 +52,22 @@ Prices are sorted from oldest to newest. Dates remain `YYYY-MM-DD` strings and p
 
 An empty response produces an empty price array and a `null` returned date range. It does not automatically mean the fund does not exist. The returned range describes the records received, not a guarantee of complete historical coverage.
 
+## Fund listing and search
+
+```ts
+import { TefasClient, searchFunds } from "tefas-js";
+
+const client = new TefasClient();
+const funds = await client.listFunds();
+const found = searchFunds(funds, "is");
+```
+
+`listFunds` returns the fund code, name, `founderCode`, and `founderName`. Missing founder information is `null`. Listings are sorted by code, identical entries are deduplicated, and conflicting entries are rejected.
+
+`searchFunds` searches the supplied array without sending requests or changing the input. It handles Turkish letters: `is` also matches `İŞ PORTFÖY`. Exact code matches come first, followed by code prefixes and name matches. Each group is sorted by code. Empty queries are rejected.
+
+Use `listFunds({ signal })` to support cancellation. The client's timeout and retry settings apply. The listing endpoint may cover a different set of funds than the daily data endpoint.
+
 ## Timeouts and cancellation
 
 `timeoutMs` defaults to 10 seconds and covers requests, body reading, and retry waits within one query. It must be an integer from `1` to `2_147_483_647`.
@@ -129,13 +145,15 @@ The client does not imitate a browser or try to bypass access controls. If TEFAS
 
 ## Scope
 
-The first version focuses on one fund's price history. Fund discovery, additional fund details, multi-fund queries, and caching are future work. CommonJS and browser compatibility are not claimed.
+Fund listing, search, and single-fund price history are available. Daily details, asset allocation, multi-fund queries, and caching are future work. CommonJS and browser compatibility are not claimed.
 
-No requests run during package installation or import. TEFAS is queried when you call the client method.
+No requests run during package installation or import. `getPriceHistory` and `listFunds` send requests; `searchFunds` runs locally.
 
 ## Release notes
 
 ### 0.2.0 — in development
+
+Added `listFunds` for fund listings and founder information, and `searchFunds` for local search.
 
 Added the `period` option for weekly and YTD queries. Existing `periodMonths` calls continue to work.
 

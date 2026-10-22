@@ -4,7 +4,7 @@
 
 TEFAS verilerine erişmek için JavaScript/TypeScript kütüphanesi.
 
-Şu an fon koduyla fiyat verisi çekebilirsiniz. Node.js 22 ve üzeriyle çalışır, ek bağımlılık gerektirmez.
+Fon listesini alabilir, fon arayabilir ve fiyat verisi çekebilirsiniz. Node.js 22 ve üzeriyle çalışır, ek bağımlılık gerektirmez.
 
 ## Kurulum
 
@@ -56,6 +56,22 @@ Fon kodunda büyük/küçük harf ve baştaki ya da sondaki boşluklar sorun olm
 Aynı tarihe ait tekrar eden kayıtlar birleştirilir. Aynı gün için farklı fiyatlar gelirse hata döner. TEFAS boş veri döndürürse `prices` boş bir dizi, `returnedDateRange` ise `null` olur; bu, fonun bulunmadığı anlamına gelmeyebilir.
 
 `returnedDateRange`, gelen verinin ilk ve son tarihini gösterir. İstenen dönemdeki tüm kayıtların geldiğini garanti etmez.
+
+## Fon listesi ve arama
+
+```ts
+import { TefasClient, searchFunds } from "tefas-js";
+
+const client = new TefasClient();
+const funds = await client.listFunds();
+const found = searchFunds(funds, "is");
+```
+
+`listFunds`, fon kodu, fon adı, kurucu kodu (`founderCode`) ve kurucu adını (`founderName`) döndürür. Kurucu bilgisi yoksa ilgili alan `null` olur. Liste fon koduna göre sıralanır; tekrar eden aynı kayıtlar birleştirilir, çelişen kayıtlar hata verir.
+
+`searchFunds`, elinizdeki listede arama yapar; yeni istek göndermez ve listeyi değiştirmez. Örnekteki `is` sorgusu `İŞ PORTFÖY` adını da bulur. Önce kodu tam eşleşenler, sonra kodu sorguyla başlayanlar, ardından adında sorgu geçenler gelir. Her grup fon koduna göre sıralanır. Boş sorgu kabul edilmez.
+
+`listFunds({ signal })` ile istek iptal edilebilir. Zaman aşımı ve yeniden deneme ayarları fiyat sorgularıyla aynıdır. TEFAS'ın bu listesiyle günlük fon verisinin kapsamı aynı olmayabilir.
 
 ## Zaman aşımı ve iptal
 
@@ -164,13 +180,15 @@ Bu komut tek bir istek gönderir. Normal testlere veya CI'a dahil değildir. CI'
 
 ## Projenin durumu
 
-İlk sürüm yalnızca tek fonun fiyat verisini sorgular. Fon listesi, ek fon bilgileri, toplu sorgu ve önbellekleme henüz yok. API, sonraki 0.x sürümlerinde değişebilir.
+Fon listesi, arama ve tek fonun fiyat sorgusu mevcut. Günlük detaylar, varlık dağılımı, toplu sorgu ve önbellekleme henüz yok. API, sonraki 0.x sürümlerinde değişebilir.
 
-Paket ESM olarak sunulur. CommonJS ve tarayıcı desteği yoktur. Kurulumda veya import sırasında istek gönderilmez; istek yalnızca `getPriceHistory` çağrıldığında yapılır.
+Paket ESM olarak sunulur. CommonJS ve tarayıcı desteği yoktur. Kurulumda veya import sırasında istek gönderilmez. `getPriceHistory` ve `listFunds` ağ isteği yapar; `searchFunds` yapmaz.
 
 ## Sürüm notları
 
 ### 0.2.0 — hazırlanıyor
+
+`listFunds` ile fon listesi ve kurucu bilgileri, `searchFunds` ile yerel arama eklendi.
 
 Haftalık ve YTD sorguları için `period` seçeneği eklendi. Mevcut `periodMonths` çağrıları çalışmaya devam ediyor.
 

@@ -1,10 +1,11 @@
 import { TefasError } from "./errors.js";
+import { parseFundListings } from "./fund-list.js";
 import { parsePriceHistory } from "./parser.js";
 import { resolveHistoryPeriod, toSourcePeriod } from "./periods.js";
 import { executeRequest, withRequestContext } from "./request.js";
-import { requestPriceHistory } from "./transport.js";
+import { postJson, requestPriceHistory } from "./transport.js";
 import { isRecord, normalizeFundCode } from "./validation.js";
-import type { GetPriceHistoryOptions, PriceHistory, TefasClientOptions } from "./types.js";
+import type { FundListing, GetPriceHistoryOptions, PriceHistory, TefasClientOptions } from "./types.js";
 
 export class TefasClient {
   private readonly timeoutMs: number;
@@ -25,6 +26,24 @@ export class TefasClient {
     }
     this.timeoutMs = timeoutMs;
     this.maxRetries = maxRetries;
+  }
+
+  async listFunds(options: { readonly signal?: AbortSignal } = {}): Promise<readonly FundListing[]> {
+    if (!isRecord(options) || Object.keys(options).some((key) => key !== "signal")) {
+      throw new TefasError("INVALID_ARGUMENT", "Invalid fund list options.");
+    }
+    const signal = options.signal;
+    if (signal !== undefined && !(signal instanceof AbortSignal)) {
+      throw new TefasError("INVALID_ARGUMENT", "Invalid cancellation signal.");
+    }
+    return withRequestContext(this.timeoutMs, signal, (request) =>
+      executeRequest(
+        request,
+        this.maxRetries,
+        (requestSignal) => postJson("https://www.tefas.gov.tr/api/statistics/tefas/getFplFonList", {}, globalThis.fetch, requestSignal),
+        parseFundListings,
+      ),
+    );
   }
 
   async getPriceHistory(fundCode: string, options: GetPriceHistoryOptions): Promise<PriceHistory> {
