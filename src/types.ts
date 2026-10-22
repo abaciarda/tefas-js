@@ -11,6 +11,54 @@ export interface FundListing {
   readonly founderName: string | null;
 }
 
+export interface FundSnapshot {
+  readonly fundCode: string;
+  readonly fundName: string;
+  readonly kind: FundKind;
+  readonly date: string;
+  readonly price: number;
+  readonly sharesOutstanding: number | null;
+  readonly investorCount: number | null;
+  readonly portfolioSize: number | null;
+}
+
+export interface GetSnapshotsOptions {
+  readonly date: string;
+  readonly kind?: FundKind;
+  readonly signal?: AbortSignal;
+}
+
+export type AllocationKey =
+  | "stock" | "governmentBond" | "treasuryBill" | "financingBill" | "privateSectorBond" | "bankBill"
+  | "assetBackedSecurities" | "eurobond" | "governmentExternalDebt" | "privateSectorExternalDebt"
+  | "fxGovernmentInternalDebt" | "fxPayableBill" | "fxPayableBond"
+  | "takasbankMoneyMarket" | "bistMoneyMarket" | "bistCommittedBuy" | "bistCommittedSell" | "repo" | "reverseRepo"
+  | "termDeposit" | "depositTl" | "depositFx" | "depositGold"
+  | "participationAccount" | "participationAccountTl" | "participationAccountFx" | "participationAccountGold"
+  | "governmentLeaseCertificate" | "governmentLeaseCertificateTl" | "governmentLeaseCertificateFx"
+  | "governmentForeignLeaseCertificate" | "privateSectorLeaseCertificate" | "privateSectorForeignLeaseCertificate"
+  | "preciousMetals" | "preciousMetalsEtf" | "preciousMetalsGovernmentDebt" | "preciousMetalsLeaseCertificate"
+  | "foreignSecurity" | "foreignDebtSecurity" | "foreignGovernmentDebt" | "foreignPrivateSectorDebt" | "foreignStock" | "foreignEtf"
+  | "fundParticipationCertificate" | "investmentFund" | "etf" | "realEstateFund" | "realEstateInvestment"
+  | "ventureCapitalFund" | "ventureCapitalInvestment"
+  | "derivative" | "futuresCashCollateral" | "realEstateCertificate" | "other";
+
+export interface FundAllocation {
+  readonly fundCode: string;
+  readonly fundName: string;
+  readonly kind: FundKind;
+  readonly date: string;
+  readonly weights: Readonly<Partial<Record<AllocationKey, number>>>;
+}
+
+export interface MarketSummary {
+  readonly kind: FundKind | null;
+  readonly date: string | null;
+  readonly fundCount: number;
+  readonly totalPortfolioSize: number;
+  readonly totalInvestorCount: number;
+}
+
 export interface FundPrice {
   readonly date: string;
   readonly price: number;

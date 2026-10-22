@@ -73,6 +73,60 @@ const found = searchFunds(funds, "is");
 
 `listFunds({ signal })` ile istek iptal edilebilir. Zaman aşımı ve yeniden deneme ayarları fiyat sorgularıyla aynıdır. TEFAS'ın bu listesiyle günlük fon verisinin kapsamı aynı olmayabilir.
 
+## Günlük fon verileri
+
+```ts
+const fund = await client.getSnapshot("TI2", { date: "2026-10-20" });
+const snapshots = await client.getSnapshots({ date: "2026-10-20" });
+const pension = await client.getSnapshot("AE1", {
+  date: "2026-10-20",
+  kind: "EMK",
+});
+```
+
+`getSnapshot` tek fonun, `getSnapshots` ise seçilen türdeki fonların o güne ait verisini getirir. `date` zorunludur ve `YYYY-MM-DD` biçimindedir. `kind` varsayılan olarak `YAT`; diğer seçenekler `EMK`, `BYF`, `GYF` ve `GSYF`.
+
+`kind` fonun türüyle uyuşmazsa (örneğin bir emeklilik fonu `YAT` ile sorgulanırsa) `getSnapshot` hata yerine `null` döner.
+
+Sonuçta fon kodu, ad, tür, tarih ve fiyatın yanında şu alanlar bulunur:
+
+| Alan | Açıklama |
+| --- | --- |
+| `sharesOutstanding` | Tedavüldeki pay sayısı |
+| `investorCount` | Yatırımcı sayısı |
+| `portfolioSize` | Portföy büyüklüğü |
+
+Bu üç alanda TEFAS'ın göndermediği değerler `null` olur. `0`, gerçekten sıfır olarak gelen değerdir. Liste fon koduna göre sıralanır ve aynı kayıtlar tekilleştirilir. Çelişen kayıtlar veya istenenden farklı bir tarih hata verir.
+
+Veri yoksa `getSnapshot` için `null`, `getSnapshots` için boş dizi döner. Hafta sonu keşfinde görülen `Index 0 out of bounds for length 0` yanıtı da boş sonuç olarak işlenir. Diğer kaynak hataları bildirilir. Güncel günün verisi henüz yayımlanmamış olabilir. İki metot da `signal` seçeneğini ve istemcinin zaman aşımı/yeniden deneme ayarlarını kullanır.
+
+## Varlık dağılımı
+
+```ts
+const allocation = await client.getAllocation("TI2", { date: "2026-10-20" });
+
+console.log(allocation?.weights.stock);
+console.log(allocation?.weights.reverseRepo);
+```
+
+`getAllocation`, seçilen tarihteki fon dağılımını getirir. `kind` ve `signal` seçenekleri günlük sorgularla aynıdır. Sunucu filtresi kullanılır; her çağrıda tüm fonların dağılımı indirilmez. Boş sonuçta `null` döner.
+
+`weights` içindeki değerler yüzdedir: `92.28`, `%92,28` anlamına gelir. Eksik veya `null` kalemler nesneye eklenmez, sıfır değerler korunur. Kalemler `0`–`100` arasında olmalı; toplamın 100'den en fazla 0,5 puan sapmasına izin verilir. Çelişen kayıtlar, farklı fon kodu veya farklı tarih hata verir.
+
+## Sıralama ve piyasa özeti
+
+```ts
+import { topFunds, summarizeMarket } from "tefas-js";
+
+const largest = topFunds(snapshots, { by: "portfolioSize", limit: 10 });
+const mostInvestors = topFunds(snapshots, { by: "investorCount", limit: 10 });
+const summary = summarizeMarket(snapshots);
+```
+
+Bu iki fonksiyon elinizdeki veriyi kullanır, istek göndermez ve girdiyi değiştirmez. `topFunds`, seçilen alanı `null` olan fonları dışarıda bırakır. Değerler büyükten küçüğe, eşitlikte fon koduna göre sıralanır. `limit` pozitif bir tam sayı olmalıdır.
+
+`summarizeMarket`; fon sayısını, portföy büyüklükleri toplamını ve yatırımcı sayıları toplamını döndürür. `null` değerler toplama katılmaz. Yatırımcı toplamı benzersiz kişi sayısı değildir; aynı kişi birden fazla fonda yer alabilir. Veriler farklı türlerden veya tarihlerden geliyorsa özette ilgili `kind` ya da `date` alanı `null` olur. Boş dizide toplamlar sıfırdır.
+
 ## Zaman aşımı ve iptal
 
 Varsayılan zaman aşımı 10 saniyedir. İstek, yanıtın okunması ve varsa yeniden denemeler bu süreye dahildir. Süreyi milisaniye olarak değiştirebilirsiniz:
@@ -180,13 +234,17 @@ Bu komut tek bir istek gönderir. Normal testlere veya CI'a dahil değildir. CI'
 
 ## Projenin durumu
 
-Fon listesi, arama ve tek fonun fiyat sorgusu mevcut. Günlük detaylar, varlık dağılımı, toplu sorgu ve önbellekleme henüz yok. API, sonraki 0.x sürümlerinde değişebilir.
+Fon listesi, arama, fiyat sorgusu, günlük fon verileri ve varlık dağılımı mevcut. Günlük veriler üzerinde sıralama ve özet de yapılabilir. Tarih aralığıyla günlük geçmiş ve önbellekleme henüz yok. API, sonraki 0.x sürümlerinde değişebilir.
 
-Paket ESM olarak sunulur. CommonJS ve tarayıcı desteği yoktur. Kurulumda veya import sırasında istek gönderilmez. `getPriceHistory` ve `listFunds` ağ isteği yapar; `searchFunds` yapmaz.
+Paket ESM olarak sunulur. CommonJS ve tarayıcı desteği yoktur. Kurulumda veya import sırasında istek gönderilmez. İstemci metotları ağ isteği yapar; `searchFunds`, `topFunds` ve `summarizeMarket` yapmaz.
 
 ## Sürüm notları
 
 ### 0.2.0 — hazırlanıyor
+
+`getAllocation` ile fonun varlık dağılımı eklendi.
+
+`getSnapshot` ve `getSnapshots` ile günlük fon verileri, `topFunds` ve `summarizeMarket` ile yerel sıralama ve özet eklendi.
 
 `listFunds` ile fon listesi ve kurucu bilgileri, `searchFunds` ile yerel arama eklendi.
 

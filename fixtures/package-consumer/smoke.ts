@@ -9,6 +9,30 @@ globalThis.fetch = async (url, init) => {
   calls += 1;
   assert.ok(init);
   assert.ok(typeof init.body === 'string');
+  if (url === 'https://www.tefas.gov.tr/api/funds/dagilimSiraliGetirT') {
+    const body = JSON.parse(init.body) as { fonKodu: string; fonKod: string; fonTipi: string; basTarih: string; bitTarih: string };
+    assert.equal(body.fonKodu, 'TI2');
+    assert.equal(body.fonKod, 'TI2');
+    assert.equal(body.fonTipi, 'YAT');
+    assert.equal(body.basTarih, '20261020');
+    assert.equal(body.bitTarih, '20261020');
+    return Response.json({
+      errorCode: null, errorMessage: null,
+      resultList: [{ fonKodu: 'TI2', fonUnvan: 'İŞ PORTFÖY', tarih: '2026-10-20', hs: 90, tr: 10, dt: null }],
+    });
+  }
+  if (url === 'https://www.tefas.gov.tr/api/funds/fonGnlBlgSiraliGetir') {
+    const body = JSON.parse(init.body) as { fonKodu: string | null; fonTipi: string; basTarih: string; bitTarih: string };
+    assert.equal(body.fonTipi, 'YAT');
+    assert.equal(body.basTarih, '20261020');
+    assert.equal(body.bitTarih, '20261020');
+    assert.ok(body.fonKodu === null || body.fonKodu === 'TI2');
+    const rows = [
+      { fonKodu: 'TI2', fonUnvan: 'İŞ PORTFÖY', tarih: '2026-10-20', fiyat: 2, tedPaySayisi: 100, kisiSayisi: 10, portfoyBuyukluk: 200 },
+      { fonKodu: 'AAA', fonUnvan: 'Other Fund', tarih: '2026-10-20', fiyat: 1, tedPaySayisi: null, kisiSayisi: 20, portfoyBuyukluk: 100 },
+    ];
+    return Response.json({ errorCode: null, errorMessage: null, resultList: body.fonKodu === null ? rows : rows.slice(0, 1) });
+  }
   if (url === 'https://www.tefas.gov.tr/api/statistics/tefas/getFplFonList') {
     assert.deepEqual(JSON.parse(init.body), {});
     return Response.json({
@@ -29,7 +53,7 @@ globalThis.fetch = async (url, init) => {
 };
 
 try {
-  const { TefasClient, TefasError, searchFunds } = await import('tefas-js');
+  const { TefasClient, TefasError, searchFunds, topFunds, summarizeMarket } = await import('tefas-js');
   const client = new TefasClient({ timeoutMs: 1000, maxRetries: 0 });
   assert.equal(calls, 0);
 
@@ -62,6 +86,26 @@ try {
   const found = searchFunds(funds, 'is');
   assert.equal(found[0], funds[0]);
   assert.equal(calls, 4);
+  const snapshot = await client.getSnapshot('TI2', { date: '2026-10-20' });
+  assert.deepEqual(snapshot, {
+    fundCode: 'TI2', fundName: 'İŞ PORTFÖY', kind: 'YAT', date: '2026-10-20', price: 2,
+    sharesOutstanding: 100, investorCount: 10, portfolioSize: 200,
+  });
+  const snapshots = await client.getSnapshots({ date: '2026-10-20' });
+  assert.equal(calls, 6);
+  assert.deepEqual(snapshots.map((fund) => fund.fundCode), ['AAA', 'TI2']);
+  assert.equal(snapshots[0]?.sharesOutstanding, null);
+  assert.equal(topFunds(snapshots, { by: 'portfolioSize', limit: 1 })[0]?.fundCode, 'TI2');
+  assert.deepEqual(summarizeMarket(snapshots), {
+    kind: 'YAT', date: '2026-10-20', fundCount: 2, totalPortfolioSize: 300, totalInvestorCount: 30,
+  });
+  assert.equal(searchFunds(snapshots, 'is')[0]?.investorCount, 10);
+  assert.equal(calls, 6);
+  const allocation = await client.getAllocation('TI2', { date: '2026-10-20' });
+  assert.deepEqual(allocation, {
+    fundCode: 'TI2', fundName: 'İŞ PORTFÖY', kind: 'YAT', date: '2026-10-20', weights: { stock: 90, reverseRepo: 10 },
+  });
+  assert.equal(calls, 7);
   console.log('Consumer JavaScript OK');
 } finally {
   globalThis.fetch = originalFetch;

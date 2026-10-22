@@ -1,11 +1,13 @@
 import { TefasError } from "./errors.js";
+import { parseAllocation } from "./allocation.js";
 import { parseFundListings } from "./fund-list.js";
 import { parsePriceHistory } from "./parser.js";
 import { resolveHistoryPeriod, toSourcePeriod } from "./periods.js";
 import { executeRequest, withRequestContext } from "./request.js";
+import { dailyRequestBody, parseSnapshots, validateSnapshotOptions } from "./snapshots.js";
 import { postJson, requestPriceHistory } from "./transport.js";
 import { isRecord, normalizeFundCode } from "./validation.js";
-import type { FundListing, GetPriceHistoryOptions, PriceHistory, TefasClientOptions } from "./types.js";
+import type { FundAllocation, FundListing, FundSnapshot, GetPriceHistoryOptions, GetSnapshotsOptions, PriceHistory, TefasClientOptions } from "./types.js";
 
 export class TefasClient {
   private readonly timeoutMs: number;
@@ -42,6 +44,43 @@ export class TefasClient {
         this.maxRetries,
         (requestSignal) => postJson("https://www.tefas.gov.tr/api/statistics/tefas/getFplFonList", {}, globalThis.fetch, requestSignal),
         parseFundListings,
+      ),
+    );
+  }
+
+  async getAllocation(fundCode: string, options: GetSnapshotsOptions): Promise<FundAllocation | null> {
+    const normalizedCode = normalizeFundCode(fundCode);
+    const { date, kind, signal } = validateSnapshotOptions(options);
+    const body = { ...dailyRequestBody(normalizedCode, kind, date), fonKod: normalizedCode };
+    return withRequestContext(this.timeoutMs, signal, (request) =>
+      executeRequest(
+        request,
+        this.maxRetries,
+        (requestSignal) => postJson("https://www.tefas.gov.tr/api/funds/dagilimSiraliGetirT", body, globalThis.fetch, requestSignal),
+        (payload) => parseAllocation(payload, normalizedCode, kind, date),
+      ),
+    );
+  }
+
+  async getSnapshots(options: GetSnapshotsOptions): Promise<readonly FundSnapshot[]> {
+    return this.requestSnapshots(null, options);
+  }
+
+  async getSnapshot(fundCode: string, options: GetSnapshotsOptions): Promise<FundSnapshot | null> {
+    const normalizedCode = normalizeFundCode(fundCode);
+    const snapshots = await this.requestSnapshots(normalizedCode, options);
+    return snapshots[0] ?? null;
+  }
+
+  private async requestSnapshots(fundCode: string | null, options: GetSnapshotsOptions): Promise<readonly FundSnapshot[]> {
+    const { date, kind, signal } = validateSnapshotOptions(options);
+    const body = dailyRequestBody(fundCode, kind, date);
+    return withRequestContext(this.timeoutMs, signal, (request) =>
+      executeRequest(
+        request,
+        this.maxRetries,
+        (requestSignal) => postJson("https://www.tefas.gov.tr/api/funds/fonGnlBlgSiraliGetir", body, globalThis.fetch, requestSignal),
+        (payload) => parseSnapshots(payload, kind, date, fundCode ?? undefined),
       ),
     );
   }

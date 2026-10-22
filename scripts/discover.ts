@@ -49,6 +49,10 @@ const probes: readonly Probe[] = [
   { name: 'fonGnlBlgSiraliGetir-all', endpoint: '/api/funds/fonGnlBlgSiraliGetir', body: dailyBody(null), sampleSize: 5 },
   { name: 'fonGnlBlgSiraliGetir-weekend', endpoint: '/api/funds/fonGnlBlgSiraliGetir', body: dailyBody('TI2', 'YAT', '20261018') },
   { name: 'dagilimSiraliGetirT', endpoint: '/api/funds/dagilimSiraliGetirT', body: dailyBody('TI2') },
+  { name: 'dagilimSiraliGetirT-both-codes', endpoint: '/api/funds/dagilimSiraliGetirT', body: { ...dailyBody('TI2'), fonKod: 'TI2' } },
+  { name: 'dagilimSiraliGetirT-weekend', endpoint: '/api/funds/dagilimSiraliGetirT', body: { ...dailyBody('TI2', 'YAT', '20261018'), fonKod: 'TI2' } },
+  { name: 'dagilimSiraliGetirT-fonKod-only', endpoint: '/api/funds/dagilimSiraliGetirT', body: { ...dailyBody(null), fonKod: 'TI2' } },
+  { name: 'dagilimSiraliGetirT-search', endpoint: '/api/funds/dagilimSiraliGetirT', body: { ...dailyBody('TI2'), aramaMetni: 'TI2' } },
   { name: 'fonProfilDtyGetir', endpoint: '/api/funds/fonProfilDtyGetir', body: { fonKodu: 'TI2', dil: 'TR', periyod: 12 } },
   { name: 'fonTipiGetir', endpoint: '/api/funds/fonTipiGetir', body: { fonKodu: 'TI2' } },
 ];
@@ -96,6 +100,13 @@ for (const probe of probes) {
     rowCount: rows?.length ?? null, firstRow: fields(rows?.[0]),
     sourceCode: isRecord(payload) ? payload.errorCode ?? null : null,
     sourceMessage: isRecord(payload) ? payload.errorMessage ?? null : null,
+    ...(probe.endpoint === '/api/funds/dagilimSiraliGetirT' && rows?.some((row: unknown) => isRecord(row) && 'bilFiyat' in row) ? {
+      ignoredMetadataFields: { bilFiyat: 'Not a percentage; excluded from allocation weights and totals.' },
+    } : {}),
+    ...(probe.name.startsWith('dagilimSiraliGetirT-') ? {
+      matchingRows: rows?.filter((row: unknown) => isRecord(row) && row.fonKodu === 'TI2').length ?? null,
+      exclusivelyRequestedFund: rows !== null && rows.length > 0 && rows.every((row: unknown) => isRecord(row) && row.fonKodu === 'TI2'),
+    } : {}),
   };
   const previous = report.findIndex((entry) => entry.name === probe.name);
   if (previous !== -1) report.splice(previous, 1);

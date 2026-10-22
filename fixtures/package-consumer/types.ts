@@ -1,10 +1,15 @@
-import { TefasClient, TefasError, searchFunds } from 'tefas-js';
+import { TefasClient, TefasError, searchFunds, topFunds, summarizeMarket } from 'tefas-js';
 import type {
   GetPriceHistoryOptions,
+  AllocationKey,
+  FundAllocation,
   FundListing,
+  FundSnapshot,
+  GetSnapshotsOptions,
   HistoryPeriod,
   HistoryPeriodMonths,
   PriceHistory,
+  MarketSummary,
   TefasClientOptions,
   TefasErrorCode,
 } from 'tefas-js';
@@ -33,6 +38,33 @@ const kind: 'YAT' | undefined = found[0]?.kind;
 void listings;
 void price;
 void kind;
+const snapshotOptions: GetSnapshotsOptions = { date: '2026-10-20', kind: 'EMK', signal: new AbortController().signal };
+const snapshotResult: Promise<FundSnapshot | null> = client.getSnapshot('AE1', snapshotOptions);
+const snapshotsResult: Promise<readonly FundSnapshot[]> = client.getSnapshots(snapshotOptions);
+void snapshotResult;
+void snapshotsResult;
+const allocationResult: Promise<FundAllocation | null> = client.getAllocation('AE1', snapshotOptions);
+const stockKey: AllocationKey = 'stock';
+void allocationResult;
+void stockKey;
+
+// @ts-expect-error Allocation needs a date.
+client.getAllocation('TI2', {});
+// @ts-expect-error Allocation only accepts supported fund kinds.
+client.getAllocation('TI2', { date: '2026-10-20', kind: 'F' });
+
+// @ts-expect-error A snapshot date is required.
+client.getSnapshots({});
+// @ts-expect-error Snapshot dates must be strings.
+client.getSnapshot('TI2', { date: new Date() });
+// @ts-expect-error Only supported fund kinds are accepted.
+client.getSnapshots({ date: '2026-10-20', kind: 'F' });
+// @ts-expect-error Snapshot options reject unknown keys.
+client.getSnapshots({ date: '2026-10-20', typo: true });
+// @ts-expect-error Fund ranking only accepts supported fields.
+topFunds([], { by: 'price', limit: 1 });
+// @ts-expect-error Fund ranking requires a numeric limit.
+topFunds([], { by: 'portfolioSize', limit: '1' });
 
 // @ts-expect-error Listing rejects unknown options.
 client.listFunds({ typo: true });
@@ -85,3 +117,37 @@ function checkListings(funds: readonly FundListing[]) {
   found.push(extended[0]!);
 }
 void checkListings;
+
+function checkSnapshots(snapshots: readonly FundSnapshot[]) {
+  const ranked: readonly FundSnapshot[] = topFunds(snapshots, { by: 'investorCount', limit: 5 });
+  const summary: MarketSummary = summarizeMarket(snapshots);
+  const matches: readonly FundSnapshot[] = searchFunds(snapshots, 'is');
+  void ranked;
+  void matches;
+  // @ts-expect-error Snapshot arrays are readonly.
+  snapshots.reverse();
+  // @ts-expect-error Market summaries are readonly.
+  summary.fundCount = 0;
+  const first = snapshots[0];
+  if (first) {
+    const investors: number | null = first.investorCount;
+    void investors;
+    // @ts-expect-error Snapshot fields are readonly.
+    first.price = 0;
+  }
+}
+void checkSnapshots;
+
+function checkAllocation(allocation: FundAllocation) {
+  const stock: number | undefined = allocation.weights.stock;
+  void stock;
+  // @ts-expect-error Allocation percentages are readonly.
+  allocation.weights.stock = 100;
+  // @ts-expect-error The weights object is readonly.
+  allocation.weights = {};
+  // @ts-expect-error Unknown allocation keys are not exposed.
+  allocation.weights.unknownBucket;
+  // @ts-expect-error Allocation metadata is readonly.
+  allocation.date = '2026-10-21';
+}
+void checkAllocation;
