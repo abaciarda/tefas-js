@@ -6,7 +6,7 @@ An unofficial TEFAS fund data library for JavaScript and TypeScript.
 
 List and search funds, fetch prices and daily data, and retrieve asset allocations and return comparisons. The ESM API includes typed results, cancellation, and optional bounded retries, with no runtime dependencies.
 
-This document also describes the API under development. The new methods are not on npm yet; the published `0.1.1` version supports `getPriceHistory` with `periodMonths`.
+This document describes the `0.2.0` API. If you use `0.1.1`, update the package to access the new methods.
 
 > Early release. The public API may change in future 0.x versions.
 
@@ -267,7 +267,7 @@ No requests run during package installation or import. Client methods send reque
 
 ## Release notes
 
-### 0.2.0 — in development
+### 0.2.0
 
 Added `getDailyHistory` for rate-limited daily history over date ranges.
 
@@ -283,7 +283,7 @@ Added the `period` option for weekly and YTD queries. Existing `periodMonths` ca
 
 `PriceHistory.periodMonths` is now `HistoryPeriodMonths | null`. TypeScript consumers may need a null check when using this field. Results also include the required `period` field.
 
-These changes have not been published to npm yet. Use `periodMonths` with the published `0.1.1` version.
+Users of `0.1.1` can continue using `getPriceHistory` with `periodMonths`; the new methods require `0.2.0`.
 
 ## License and affiliation
 

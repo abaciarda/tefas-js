@@ -6,7 +6,7 @@ TEFAS verilerine erişmek için JavaScript/TypeScript kütüphanesi.
 
 Fonları listeleyip arayabilir; fiyatları, günlük fon verilerini, varlık dağılımını ve getiri karşılaştırmalarını alabilirsiniz. Node.js 22 ve üzeriyle çalışır, ek bağımlılık gerektirmez.
 
-Bu belgede geliştirilmekte olan API de anlatılıyor. Yeni metotlar henüz npm'de yok; yayımlanmış `0.1.1` sürümünde `getPriceHistory` ve `periodMonths` kullanılabilir.
+Bu belge `0.2.0` API'sini anlatır. `0.1.1` kullanıyorsanız yeni metotlar için paketi güncelleyin.
 
 ## Kurulum
 
@@ -308,7 +308,7 @@ Paket ESM olarak sunulur. CommonJS ve tarayıcı desteği yoktur. Kurulumda veya
 
 ## Sürüm notları
 
-### 0.2.0 — hazırlanıyor
+### 0.2.0
 
 `getDailyHistory` ile tarih aralığıyla, hız sınırlı günlük geçmiş eklendi.
 
@@ -324,7 +324,7 @@ Haftalık ve YTD sorguları için `period` seçeneği eklendi. Mevcut `periodMon
 
 `PriceHistory.periodMonths` artık `HistoryPeriodMonths | null`. Bu alanı kullanan TypeScript kodunda `null` kontrolü gerekebilir. Sonuca her zaman dolu olan `period` alanı da eklendi.
 
-Bu değişiklikler henüz npm'de yayımlanmadı. Yayımlanmış `0.1.1` sürümünde `periodMonths` kullanılmalı.
+`0.1.1` kullananlar `getPriceHistory` ve `periodMonths` ile devam edebilir; yeni metotlar için `0.2.0` gerekir.
 
 ## Lisans
 
