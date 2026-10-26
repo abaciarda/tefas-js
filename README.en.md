@@ -2,9 +2,11 @@
 
 [English](README.en.md) | [Türkçe](README.md)
 
-An unofficial TEFAS price history client for JavaScript and TypeScript.
+An unofficial TEFAS fund data library for JavaScript and TypeScript.
 
-Fetch one fund's historical prices through a small ESM API, with validated responses, typed results, cancellation, and optional bounded retries. No runtime dependencies.
+List and search funds, fetch prices and daily data, and retrieve asset allocations and return comparisons. The ESM API includes typed results, cancellation, and optional bounded retries, with no runtime dependencies.
+
+This document also describes the API under development. The new methods are not on npm yet; the published `0.1.1` version supports `getPriceHistory` with `periodMonths`.
 
 > Early release. The public API may change in future 0.x versions.
 
@@ -129,6 +131,8 @@ console.log(allocation?.weights.reverseRepo);
 
 `getAllocation` returns the fund's allocation for the requested date. It accepts the same `kind` and `signal` options as daily snapshots. Filtering happens on the server; calls do not download allocations for all funds. An empty result returns `null`.
 
+The exact `Index 0 out of bounds for length 0` response verified in the weekend check also returns `null`; other source errors are reported. The source's `bilFiyat` field is not a percentage and is excluded from allocation weights.
+
 `weights` contains percentages: `92.28` means 92.28%. Missing or null entries are omitted, and zero is preserved. Values must be between 0 and 100; totals may differ from 100 by at most 0.5 percentage points. Conflicting rows, unexpected fund codes, and unexpected dates are rejected.
 
 ## Return comparison
@@ -238,13 +242,20 @@ bun run verify:package
 
 `check` builds the package and runs the same offline tests under Node.js and Bun. `verify:package` also inspects the tarball and tests a separate JavaScript/TypeScript consumer. It does not publish anything.
 
-`bun run smoke:live` sends one real request to TEFAS for `TI2`. Pass another fund code after `--`. It is not part of `check` or CI.
+```sh
+bun run smoke:live
+bun run smoke:live -- TI2 2026-10-23
+```
+
+The live smoke checks all eight client methods with nine real requests. Checks wait at least 12 seconds apart; a 40-day history query uses two chunks with a 12-second interval. Allow about two minutes or more. Retries are disabled, and the suite stops at the first failure. It is not part of `check` or CI.
+
+The first argument is the fund code (default `TI2`); the second is a reference date in `YYYY-MM-DD` format. Without a date, the previous weekday in Turkey's calendar is used. This suite checks investment funds using `YAT`. Holidays or unpublished data can produce empty results: choose a completed business day, as the script does not scan alternative dates. The history range covers 40 inclusive days ending on the reference date.
 
 The CI matrix covers Node.js 22 and 24 on Linux and Windows. A configured matrix is separate from a successful CI run; check the repository's workflow results for the actual status.
 
 ## Rate limits
 
-TEFAS does not document its API and may throttle or block clients that send many requests in a short time. This package does not queue or space out requests for you. When fetching several funds, send requests one at a time and keep them infrequent. A rejected or throttled request surfaces as `ACCESS_DENIED` or `HTTP_ERROR`, and retries stay disabled unless you opt in.
+TEFAS may throttle or block clients that send many requests in a short time. `getDailyHistory` spaces out its own sequential chunks; there is no shared queue for other calls. When fetching several funds, send requests one at a time and keep them infrequent. A rejected or throttled request surfaces as `ACCESS_DENIED` or `HTTP_ERROR`, and retries stay disabled unless you opt in.
 
 The client does not imitate a browser or try to bypass access controls. If TEFAS blocks a request, the error is reported instead of worked around.
 

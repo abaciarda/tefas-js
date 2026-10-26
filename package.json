@@ -1,12 +1,16 @@
 {
   "name": "tefas-js",
   "version": "0.1.1",
-  "description": "Unofficial, dependency-free TEFAS client for fund prices, listings, daily data, asset allocation, return comparisons and fund types in JavaScript and TypeScript.",
+  "description": "TEFAS fon verileri, fiyatlar, varlık dağılımı ve getiri karşılaştırmaları için JavaScript/TypeScript kütüphanesi.",
   "keywords": [
     "tefas",
     "fund",
     "fon",
     "price-history",
+    "fund-data",
+    "asset-allocation",
+    "fon-verileri",
+    "yatirim-fonu",
     "turkey",
     "takasbank",
     "finance",

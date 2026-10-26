@@ -4,7 +4,9 @@
 
 TEFAS verilerine erişmek için JavaScript/TypeScript kütüphanesi.
 
-Fon listesini alabilir, fon arayabilir ve fiyat verisi çekebilirsiniz. Node.js 22 ve üzeriyle çalışır, ek bağımlılık gerektirmez.
+Fonları listeleyip arayabilir; fiyatları, günlük fon verilerini, varlık dağılımını ve getiri karşılaştırmalarını alabilirsiniz. Node.js 22 ve üzeriyle çalışır, ek bağımlılık gerektirmez.
+
+Bu belgede geliştirilmekte olan API de anlatılıyor. Yeni metotlar henüz npm'de yok; yayımlanmış `0.1.1` sürümünde `getPriceHistory` ve `periodMonths` kullanılabilir.
 
 ## Kurulum
 
@@ -142,6 +144,8 @@ console.log(allocation?.weights.reverseRepo);
 
 `getAllocation`, seçilen tarihteki fon dağılımını getirir. `kind` ve `signal` seçenekleri günlük sorgularla aynıdır. Sunucu filtresi kullanılır; her çağrıda tüm fonların dağılımı indirilmez. Boş sonuçta `null` döner.
 
+Hafta sonu kontrolünde doğrulanan `Index 0 out of bounds for length 0` yanıtında da `null` döner; diğer kaynak hataları bildirilir. Yanıttaki `bilFiyat` yüzde olmadığı için dağılıma katılmaz.
+
 `weights` içindeki değerler yüzdedir: `92.28`, `%92,28` anlamına gelir. Eksik veya `null` kalemler nesneye eklenmez, sıfır değerler korunur. Kalemler `0`–`100` arasında olmalı; toplamın 100'den en fazla 0,5 puan sapmasına izin verilir. Çelişen kayıtlar, farklı fon kodu veya farklı tarih hata verir.
 
 ## Getiri karşılaştırması
@@ -264,7 +268,7 @@ Hataya göre `status`, `sourceCode`, `retryAfterMs` ve `cause` alanları da bulu
 
 ## TEFAS'a istek gönderirken
 
-Çok sayıda isteği kısa sürede göndermek TEFAS tarafından engellenmenize yol açabilir. Birden fazla fonu sorgularken istekleri tek tek gönderin ve aralarında bekleyin. Kütüphane sizin yerinize istek kuyruğu oluşturmaz.
+Çok sayıda isteği kısa sürede göndermek TEFAS tarafından engellenmenize yol açabilir. Birden fazla fonu sorgularken istekleri tek tek gönderin ve aralarında bekleyin. `getDailyHistory` kendi parçalarını bekleyerek sırayla getirir; diğer çağrılar için ortak bir istek kuyruğu yoktur.
 
 Erişim engellenirse hata döner. Kütüphane tarayıcı taklidi yapmaz veya bu engeli aşmaya çalışmaz.
 
@@ -287,9 +291,14 @@ Gerçek TEFAS bağlantısını denemek için:
 ```sh
 bun run smoke:live
 bun run smoke:live -- TI2
+bun run smoke:live -- TI2 2026-10-23
 ```
 
-Bu komut tek bir istek gönderir. Normal testlere veya CI'a dahil değildir. CI'da Node.js 22 ve 24, Windows ve Linux üzerinde kontrol edilir.
+Bu komut sekiz istemci metodunu toplam dokuz gerçek istekle kontrol eder. Kontroller arasında en az 12 saniye bekler; 40 günlük geçmiş sorgusu da 12 saniye arayla iki parçada yapılır. Yaklaşık iki dakika veya daha uzun sürebilir. Yeniden deneme kapalıdır; bir kontrol başarısız olursa kalanlar çalıştırılmaz.
+
+İlk argüman fon kodu (varsayılan `TI2`), ikincisi `YYYY-MM-DD` biçiminde referans tarihidir. Tarih verilmezse Türkiye takvimine göre önceki hafta içi gün kullanılır. Kontrol `YAT` türündeki yatırım fonları içindir. Resmî tatil veya yayımlanmamış veri nedeniyle sonuç boşsa başka tarihleri otomatik taramaz; tamamlanmış bir iş günü seçin. Tarih aralığı referans tarihle biten, iki ucu dahil 40 gündür.
+
+Canlı kontrol normal testlere veya CI'a dahil değildir. CI matrisi Node.js 22 ve 24 ile Windows ve Linux'u kapsar; gerçek çalışma sonucunu GitHub'daki workflow kaydından kontrol edin.
 
 ## Projenin durumu
 
